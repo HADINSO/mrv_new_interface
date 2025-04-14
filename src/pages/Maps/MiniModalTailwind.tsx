@@ -1,24 +1,18 @@
-import { FaTemperatureHigh, FaCloudRain, FaLeaf } from "react-icons/fa";
+// src/components/MiniModalTailwind.tsx
+import React from "react";
 
-interface MiniModalProps {
+interface Props {
   location: {
     nombre: string;
-    descripcion: string;
   };
 }
 
-const MiniModal: React.FC<MiniModalProps> = ({ location }) => {
+const MiniModalTailwind: React.FC<Props> = ({ location }) => {
   return (
-    <div className="absolute bg-white shadow-xl rounded-md px-4 py-3 bottom-24 left-5 max-w-sm z-50">
-      <h2 className="font-bold text-lg">{location.nombre}</h2>
-      <p className="text-sm text-gray-600">{location.descripcion}</p>
-      <div className="flex items-center mt-2 space-x-4 text-green-700">
-        <FaTemperatureHigh />
-        <FaCloudRain />
-        <FaLeaf />
-      </div>
+    <div className="absolute top-4 left-4 bg-white shadow-lg rounded-md p-2 z-50">
+      <p className="text-sm font-medium text-gray-800">📍 {location.nombre}</p>
     </div>
   );
 };
 
-export default MiniModal;
+export default MiniModalTailwind;

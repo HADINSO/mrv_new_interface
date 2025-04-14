@@ -1,5 +1,6 @@
 import PageMeta from "../../components/common/PageMeta";
-import MapComponent from "./Mapa";
+import GoogleMapComponent from "./GoogleMapComponent";
+
 
 export default function Maps() {
   return (
@@ -10,7 +11,7 @@ export default function Maps() {
       />
       <div className="grid grid-cols-12 gap-4 md:gap-6">
         <div className="col-span-12 h-[80vh]">
-          <MapComponent />
+          <GoogleMapComponent />
         </div>
       </div>
     </>

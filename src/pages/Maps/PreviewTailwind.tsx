@@ -1,45 +1,32 @@
-import Modal from "react-modal";
-import MiniModal from "./MiniModalTailwind";
+// src/components/PreviewTailwind.tsx
+import React from "react";
 
-// Si ya tienes la interfaz Location definida en otro lugar, puedes importarla. 
-// Para este ejemplo, se define una versión mínima aquí:
-interface Location {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  lat?: string;
-  lng?: string;
-}
-
-interface PreviewProps {
+interface Props {
   isOpen: boolean;
   onClose: () => void;
-  location: Location | null;
+  location: {
+    nombre: string;
+    descripcion: string;
+  } | null;
 }
 
-Modal.setAppElement("#root");
+const PreviewTailwind: React.FC<Props> = ({ isOpen, onClose, location }) => {
+  if (!isOpen || !location) return null;
 
-const modalStyles = {
-  content: {
-    width: "90%",
-    maxWidth: "800px",
-    height: "80%",
-    margin: "auto",
-    borderRadius: "1rem",
-    padding: "2rem",
-    overflow: "auto",
-  },
-  overlay: {
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-};
-
-const Preview: React.FC<PreviewProps> = ({ isOpen, onClose, location }) => {
   return (
-    <Modal isOpen={isOpen} onRequestClose={onClose} style={modalStyles}>
-      {location && <MiniModal location={location} />}
-    </Modal>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative">
+        <button
+          className="absolute top-2 right-2 text-gray-500 hover:text-black text-xl"
+          onClick={onClose}
+        >
+          &times;
+        </button>
+        <h2 className="text-xl font-bold mb-2">{location.nombre}</h2>
+        <p className="text-gray-700">{location.descripcion}</p>
+      </div>
+    </div>
   );
 };
 
-export default Preview;
+export default PreviewTailwind;
