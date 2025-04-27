@@ -9,4 +9,34 @@ Router::get('mrv/v1/estaciones', function() {
 });
 
 
+Router::post('mrv/v1/delete/:id', function($id) {
+    require 'Controllers/sensorController.php';
+});
+
+Router::post('mrv/v1/charts', function() {
+    require 'Controllers/graficosController.php';
+});
+
+Router::get('mrv/v1/tipo_sensor', function() {
+    $tipoSensor = 0;
+    require 'Controllers/sensorController.php';
+});
+
+Router::post('mrv/v1/add/sensor', function() {
+    require 'Controllers/sensorController.php';
+});
+
+Router::get('mrv/v1/sensor', function() {
+    require 'Controllers/sensorController.php';
+});
+
+Router::get('mrv/v1/sensor-estacion', function() {
+    require 'Controllers/sensorEstacionController.php';
+});
+
+Router::post('mrv/v1/sensor-estacion/add/', function() {
+    require 'Controllers/sensorEstacionController.php';
+});
+
+
 Router::handleRequest();

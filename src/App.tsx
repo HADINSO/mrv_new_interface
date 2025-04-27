@@ -11,7 +11,7 @@ import Avatars from "./pages/UiElements/Avatars";
 import Buttons from "./pages/UiElements/Buttons";
 import LineChart from "./pages/Charts/LineChart";
 import BarChart from "./pages/Charts/BarChart";
-import Calendar from "./pages/Calendar";
+import Estacion from "./pages/Estacion";
 import BasicTables from "./pages/Tables/BasicTables";
 import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
@@ -19,6 +19,7 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import Maps from "./pages/Maps/Maps";
+import SensoresPage from "./pages/Sensor";
 
 export default function App() {
   return (
@@ -33,7 +34,8 @@ export default function App() {
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/stations" element={<Estacion />} />
+            <Route path="/sensors" element={<SensoresPage />} />
             <Route path="/blank" element={<Blank />} />
 
             {/* Forms */}
