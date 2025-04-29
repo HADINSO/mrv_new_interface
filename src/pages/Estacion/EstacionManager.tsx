@@ -6,6 +6,8 @@ import { Modal } from "../../components/ui/modal";
 import { useModal } from "../../hooks/useModal";
 import ApiRest from "../../service/ApiRest";
 import { AgregarSensorButton } from "./AgregarSensorButton";
+import Swal from "sweetalert2";
+import LoaderCirculo from "../../components/Loader/LoaderCirculo";
 
 interface Estacion {
     id: number;
@@ -50,32 +52,75 @@ export const EstacionManager: React.FC = () => {
         };
         fetchEstaciones();
     }, []);
-
     useEffect(() => {
         const fetchSensors = async () => {
+            setLoading(true)
+            if (!selectedEstacion?.id) return;
+
             try {
-                const response = await ApiRest.get("sensor-estacion");
+                const response = await ApiRest.get("sensor-estacion", {
+                    params: { id: selectedEstacion.id }
+                });
                 if (response.data.success) {
                     setSensores(response.data.data);
                 }
+                setLoading(false);
             } catch (error) {
                 console.error("Error al cargar los sensores:", error);
+                setLoading(false);
             } finally {
                 setLoading(false);
             }
         };
+
         fetchSensors();
-    }, []);
+    }, [selectedEstacion]);
+
+
 
     const getIcon = (tipo: string) => {
         if (tipo.includes("Radiación")) return <FaRadiation className="text-yellow-500 text-2xl" />;
         if (tipo.includes("Hidrológico")) return <FaWater className="text-blue-500 text-2xl" />;
         return <FaMapMarkerAlt className="text-gray-500 text-2xl" />;
     };
+    const handleDeleteSensor = async (id: number) => {
+        const confirmDelete = window.confirm("Esta acción desvinculará el sensor. ¿Deseas continuar?");
+        if (!confirmDelete) return;
 
-    const handleDelete = (id: number) => {
-        setEstaciones(estaciones.filter((estacion) => estacion.id !== id));
-        toast.success("Estación eliminada correctamente");
+        try {
+            const response = await ApiRest.post("sensor-estacion-delete", { id });
+
+            if (response.data.success) {
+                window.alert("Sensor desvinculado correctamente");
+            } else {
+                toast.error("No se pudo desvincular el sensor. Intenta nuevamente.");
+            }
+        } catch (error) {
+            console.error("Error al desvincular el sensor:", error);
+            toast.error("Ocurrió un error al intentar desvincular el sensor");
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        const confirm = await Swal.fire({
+            title: "¿Estás seguro?",
+            text: "Esta acción eliminará la estación de forma permanente.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, eliminar",
+            cancelButtonText: "Cancelar",
+        });
+
+        if (confirm.isConfirmed) {
+            try {
+                await ApiRest.delete(`estaciones/${id}`);
+                setEstaciones(estaciones.filter((estacion) => estacion.id !== id));
+                toast.success("Estación eliminada correctamente");
+            } catch (error) {
+                console.error("Error al eliminar la estación:", error);
+                toast.error("Hubo un error al eliminar la estación");
+            }
+        }
     };
 
     const handleCreate = () => {
@@ -102,7 +147,6 @@ export const EstacionManager: React.FC = () => {
     return (
         <>
             <div className="flex justify-end mb-6">
-                {/* Agregar un botón para abrir el modal de creación */}
                 <button
                     onClick={openModal}
                     className="flex items-center gap-2 bg-green-600 text-white px-5 py-2 rounded-full hover:bg-green-700 transition-all shadow-md"
@@ -205,7 +249,6 @@ export const EstacionManager: React.FC = () => {
                             <p><strong>Descripción:</strong> {selectedEstacion.descripcion}</p>
                         </div>
 
-                        {/* Tabla de sensores */}
                         <div className="overflow-x-auto">
                             <table className="min-w-full bg-white rounded-lg shadow">
                                 <thead>
@@ -217,14 +260,18 @@ export const EstacionManager: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="text-gray-700 text-sm font-light">
+                                {loading ? (  <LoaderCirculo />) : null}
                                     {sensores.map((sensor) => (
                                         <tr key={sensor.id} className="border-b border-gray-200 hover:bg-gray-100">
                                             <td className="py-3 px-6 text-left">{sensor.id}</td>
                                             <td className="py-3 px-6 text-left">{sensor.nombre}</td>
                                             <td className="py-3 px-6 text-left">{sensor.tipo_sensor}</td>
                                             <td className="py-3 px-6 text-left">
-                                                <button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
-                                                    Eliminar
+                                                <button
+                                                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                                                    onClick={() => handleDeleteSensor(sensor.id)}
+                                                >
+                                                    Desvincular
                                                 </button>
                                             </td>
                                         </tr>

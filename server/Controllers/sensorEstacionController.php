@@ -3,12 +3,13 @@
 require './Class/Sensor.php';
 
 header('Content-Type: application/json');
+            
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $data = Sensor::getSensorEstacion();
-    } else {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($sersor) && isset($estacion)) {
         $data = Sensor::addSensorEstacion($sersor, $estacion);
+    } else {
+        $data = Sensor::getSensorEstacion($_GET['id']); 
     }
 
     echo json_encode([

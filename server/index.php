@@ -8,9 +8,8 @@ Router::get('mrv/v1/estaciones', function() {
     require 'Controllers/estacionesController.php';
 });
 
-
-Router::post('mrv/v1/delete/:id', function($id) {
-    require 'Controllers/sensorController.php';
+Router::post('mrv/v1/delete-sensor', function () {
+    require 'Controllers/deleteSensorController.php';
 });
 
 Router::post('mrv/v1/charts', function() {
@@ -32,6 +31,10 @@ Router::get('mrv/v1/sensor', function() {
 
 Router::get('mrv/v1/sensor-estacion', function() {
     require 'Controllers/sensorEstacionController.php';
+});
+
+Router::post('mrv/v1/sensor-estacion-delete', function() {
+    require 'Controllers/sensorEstacionDeleteController.php';
 });
 
 Router::post('mrv/v1/sensor-estacion/add/', function() {

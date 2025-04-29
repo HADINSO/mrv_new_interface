@@ -71,7 +71,30 @@ class Sensor
             throw new RuntimeException('Error al crear sensor: ' . $e->getMessage());
         }
     }
+    public static function deleteSensorEstacion($id): array
+    {
+        try {
+            // Conectar a la base de datos
+            $pdo = Database::connect();
 
+            // Preparar la consulta SQL para insertar un nuevo sensor
+            $query = "DELETE FROM estacion_sensor WHERE sensor = :id";
+
+            $stmt = $pdo->prepare($query);
+
+            // Vincular los parámetros
+            $stmt->bindParam(':id', $id);
+
+            // Ejecutar la consulta
+            $stmt->execute();
+
+            // Retornar un mensaje de éxito o una estructura similar
+            return ['message' => 'Sensor creado exitosamente'];
+        } catch (Exception $e) {
+            // Manejar cualquier error
+            throw new RuntimeException('Error al crear sensor: ' . $e->getMessage());
+        }
+    }
     public static function deleteSensor($id): array
     {
         try {
@@ -96,13 +119,11 @@ class Sensor
             throw new RuntimeException('Error al crear sensor: ' . $e->getMessage());
         }
     }
-    public static function getSensorEstacion(): array
+    public static function getSensorEstacion(int $id): array
     {
         try {
-            // Conectar a la base de datos
             $pdo = Database::connect();
 
-            // Preparar la consulta SQL para insertar un nuevo sensor
             $query = "
             SELECT 
             s.id AS id,
@@ -113,10 +134,12 @@ class Sensor
             JOIN estacion AS e ON e.id = es.estacion
             JOIN sensor AS s ON s.id = es.sensor
             JOIN tipo_sensor AS t ON t.id = s.tipo_sensor
+            WHERE es.estacion = :id
             ";
 
             $stmt = $pdo->prepare($query);
-
+            // Vincular los parámetros
+            $stmt->bindParam(':id', $id);
             // Ejecutar la consulta
             $stmt->execute();
 
@@ -126,5 +149,9 @@ class Sensor
             // Manejar cualquier error
             throw new RuntimeException('Error al crear sensor: ' . $e->getMessage());
         }
+    }
+    public static function addSensorEstacion(): string
+    {
+        return "string";
     }
 }

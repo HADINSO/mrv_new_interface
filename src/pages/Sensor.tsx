@@ -124,10 +124,10 @@ const SensoresPage: React.FC = () => {
     
         if (result.isConfirmed) {
             try {
-                const response = await ApiRest.post(`delete/${sensorId}`);
+                const response = await ApiRest.post('delete-sensor', { sensorId }); // <--- importante enviar como objeto
                 if (response.data.success) {
                     Swal.fire('¡Eliminado!', 'El sensor ha sido eliminado exitosamente.', 'success');
-                    fetchSensores(); 
+                    fetchSensores();
                 } else {
                     Swal.fire('Error', 'No se pudo eliminar el sensor.', 'error');
                 }
@@ -137,6 +137,7 @@ const SensoresPage: React.FC = () => {
             }
         }
     };
+    
     
     
     const handleCreateSensor = async () => {
@@ -169,7 +170,7 @@ const SensoresPage: React.FC = () => {
                     codigo: '',
                     nombre_grafico: '',
                     rango_chart: 0,
-                    grafico: 1,  // Asegurarse de que el valor predeterminado sea 1
+                    grafico: 0,  // Asegurarse de que el valor predeterminado sea 1
                     tipo_sensor: 0,
                     nombre_tipo_sensor: '',
                 });

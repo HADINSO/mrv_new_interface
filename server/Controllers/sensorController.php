@@ -23,7 +23,7 @@ try {
 
 
         $responseData = Sensor::addSensor($nombre, $minimo, $maximo, $codigo, $grafico, $tipo_sensor, $rango_chart);
-    } elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($id)) {
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($id)) {
         $responseData = Sensor::deleteSensor($id);
     } else if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($tipoSensor)) {
         $responseData = Sensor::tipoSensor();
@@ -35,6 +35,7 @@ try {
         'success' => true,
         'data' => $responseData
     ]);
+    
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
