@@ -1,19 +1,24 @@
-// GoogleMapComponent.tsx
-
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { GoogleMap, Marker, useJsApiLoader, HeatmapLayer } from "@react-google-maps/api";
+import {
+  GoogleMap,
+  Marker,
+  useJsApiLoader,
+  HeatmapLayer,
+} from "@react-google-maps/api";
 import ApiConfig from "../../service/ApiConfig";
 import SidebarInfo from "./SidebarInfo";
 import Images from "../../service/Images";
 import ApiRest from "../../service/ApiRest";
 
-// Definir la interfaz de Location
+// Interfaz extendida compatible con HistoryItem
 export interface Location {
   id: number;
   nombre: string;
   descripcion: string;
   lat: string;
   lng: string;
+  id_tipo_estacion: number;
+  tipo_estacion: string;
 }
 
 const containerStyle = {
@@ -53,7 +58,18 @@ const GoogleMapComponent: React.FC = () => {
 
       const combined = [...axiosData, ...fetchData];
 
-      setLocations(combined);
+      // Validar y convertir los datos si es necesario
+      const parsed: Location[] = combined.map((loc: any) => ({
+        id: loc.id,
+        nombre: loc.nombre,
+        descripcion: loc.descripcion,
+        lat: loc.lat,
+        lng: loc.lng,
+        id_tipo_estacion: loc.id_tipo_estacion || 0,
+        tipo_estacion: loc.tipo_estacion || "Desconocido",
+      }));
+
+      setLocations(parsed);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -75,11 +91,11 @@ const GoogleMapComponent: React.FC = () => {
   };
 
   const handleMarkerMouseOver = useCallback(() => {
-    // Lógica para el hover si es necesario en el futuro
+    // lógica para hover (opcional)
   }, []);
 
   const handleMarkerMouseOut = useCallback(() => {
-    // Lógica para el hover si es necesario en el futuro
+    // lógica para hover (opcional)
   }, []);
 
   if (!isLoaded) return <div>Cargando mapa...</div>;
@@ -136,7 +152,6 @@ const GoogleMapComponent: React.FC = () => {
         onClearHistory={handleClearHistory}
       />
 
-      {/* Botón de heatmap */}
       <button
         className="absolute bottom-5 right-5 px-5 py-3 bg-lime-500 hover:bg-lime-600 text-white rounded-lg shadow-md transition"
         onClick={() => setHeatmapVisible((prev) => !prev)}
