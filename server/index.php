@@ -37,9 +37,18 @@ Router::post('mrv/v1/sensor-estacion-delete', function() {
     require 'Controllers/sensorEstacionDeleteController.php';
 });
 
-Router::post('mrv/v1/sensor-estacion/add/', function() {
+Router::get('mrv/v1/add/sensor-estacion', function() {
     require 'Controllers/sensorEstacionController.php';
 });
+
+Router::post('mrv/v1/add/estacion', function() {
+    require 'Controllers/estacionController.php';
+});
+
+Router::get('mrv/v1/tipos-estacion', function() {
+    require 'Controllers/tiposEstacion.php';
+});
+
 
 
 Router::handleRequest();

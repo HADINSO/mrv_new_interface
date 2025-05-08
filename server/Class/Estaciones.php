@@ -25,4 +25,28 @@ class Estaciones
             throw new RuntimeException('Error al obtener estaciones: ' . $e->getMessage());
         }
     }
+    public static function crear($data)
+    {
+        $pdo = Database::connect();
+        $sql = "INSERT INTO estacion (nombre, descripcion, lat, lng, tipo_estacion, images)
+                VALUES (:nombre, :descripcion, :lat, :lng, :id_tipo_estacion, :imagen)";
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute([
+            ':nombre' => $data['nombre'],
+            ':descripcion' => $data['descripcion'],
+            ':lat' => $data['lat'],
+            ':lng' => $data['lng'],
+            ':id_tipo_estacion' => $data['id_tipo_estacion'],
+            ':imagen' => $data['imagen'],
+        ]);
+    }
+    public static function tipoEstacion()
+    {
+        $pdo = Database::connect();
+        $sql = "SELECT * FROM tipo_estacion";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll();
+         
+    } 
 }

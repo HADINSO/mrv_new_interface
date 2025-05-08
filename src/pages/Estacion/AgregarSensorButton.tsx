@@ -1,5 +1,5 @@
 // src/components/AgregarSensorButton.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal } from "../../components/ui/modal";
 import { FaPlus } from "react-icons/fa";
 import ApiRest from "../../service/ApiRest";
@@ -8,54 +8,71 @@ import { toast } from "react-toastify";
 interface Sensor {
     id: number;
     nombre: string;
-    tipo_sensor: string;
+    nombre_tipo_sensor: string; 
+}
+
+interface ApiResponse<T> {
+    success: boolean;
+    data: T;
 }
 
 interface AgregarSensorButtonProps {
-    estacionId: number; // El ID de la estación a la que se agregará el sensor
+    estacionId: number;
 }
 
 export const AgregarSensorButton: React.FC<AgregarSensorButtonProps> = ({ estacionId }) => {
-    const [isOpen, setIsOpen] = useState(false); // Para manejar el estado del modal
+    const [isOpen, setIsOpen] = useState(false);
     const [sensores, setSensores] = useState<Sensor[]>([]);
-    const [selectedSensor, setSelectedSensor] = useState<number | null>(null); // Para manejar el sensor seleccionado
+    const [selectedSensor, setSelectedSensor] = useState<number | null>(null);
 
-    // Abrir el modal
     const openModal = () => setIsOpen(true);
-
-    // Cerrar el modal
     const closeModal = () => setIsOpen(false);
 
-    // Cargar sensores disponibles
     const fetchSensores = async () => {
         try {
-            const response = await ApiRest.get("sensor");
+            const response = await ApiRest.get<ApiResponse<Sensor[]>>("sensor");
             if (response.data.success) {
                 setSensores(response.data.data);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Error al cargar sensores:", error);
+            alert("Error al cargar sensores.");
         }
     };
+
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            fetchSensores();
+        }, 10000); // 10 segundos
+
+        fetchSensores();
+
+        return () => clearInterval(intervalId);
+    }, []);
 
     const handleAgregarSensor = async () => {
         if (!selectedSensor) {
             toast.error("Selecciona un sensor para agregar.");
+            alert("Selecciona un sensor para agregar.");
             return;
         }
 
         try {
-            // Aquí agregamos el sensor a la estación
-            const response = await ApiRest.post(`sensor-estacion/add/${selectedSensor}/${estacionId}`);
-            if (response.data.success) {
+            const response = await ApiRest.get<ApiResponse<null>>(
+                `sensor-estacion?sensor=${selectedSensor}&add=${estacionId}`
+            );
+            if (response.data.success === true) {
                 toast.success("Sensor agregado correctamente.");
-                closeModal(); // Cerramos el modal después de agregar el sensor
+                alert("Sensor agregado correctamente.");
+                closeModal();
             } else {
                 toast.error("Error al agregar el sensor.");
+                alert("Error al agregar el sensor.");
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Error al agregar el sensor:", error);
             toast.error("Hubo un problema al agregar el sensor.");
+            alert("Hubo un problema al agregar el sensor.");
         }
     };
 
@@ -64,15 +81,14 @@ export const AgregarSensorButton: React.FC<AgregarSensorButtonProps> = ({ estaci
             <button
                 onClick={() => {
                     openModal();
-                    fetchSensores(); // Cargar sensores cuando se abra el modal
+                    fetchSensores();
                 }}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
             >
-                <FaPlus className="mr-2" />
+                <FaPlus />
                 Agregar Sensor
             </button>
 
-            {/* Modal para agregar sensor */}
             <Modal isOpen={isOpen} onClose={closeModal} className="max-w-3xl p-8">
                 <h2 className="text-2xl font-bold mb-6 text-center">Agregar Sensor a la Estación</h2>
                 <div className="space-y-4">

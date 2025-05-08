@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router";
 
 import {
   BoxCubeIcon,
-  CalenderIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
@@ -16,7 +15,7 @@ import {
 } from "../icons";
 import { MdLocationOn } from "react-icons/md";
 import { useSidebar } from "../context/SidebarContext";
-import SidebarWidget from "./SidebarWidget";
+
 
 type NavItem = {
   name: string;

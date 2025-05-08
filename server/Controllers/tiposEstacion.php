@@ -2,10 +2,8 @@
 
 require './Class/Estaciones.php';
 
-header('Content-Type: application/json');
-
 try {
-    $data = Estaciones::getEstacion();
+    $data = Estaciones::tipoEstacion();
     echo json_encode([
         'success' => true,
         'data' => $data

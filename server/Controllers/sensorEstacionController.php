@@ -6,9 +6,9 @@ header('Content-Type: application/json');
             
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($sersor) && isset($estacion)) {
-        $data = Sensor::addSensorEstacion($sersor, $estacion);
-    } else {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['sensor']) && isset($_GET['add'])) {
+        $data = Sensor::addSensorEstacion($_GET['sensor'], $_GET['add']);
+    }else {
         $data = Sensor::getSensorEstacion($_GET['id']); 
     }
 

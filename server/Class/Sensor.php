@@ -150,8 +150,28 @@ class Sensor
             throw new RuntimeException('Error al crear sensor: ' . $e->getMessage());
         }
     }
-    public static function addSensorEstacion(): string
+    public static function addSensorEstacion(int $sensor, int $estacion): bool
     {
-        return "string";
+        try {
+            $pdo = Database::connect();
+
+            $query = "INSERT INTO estacion_sensor (estacion, sensor) VALUES (?, ?)";
+            $stmt = $pdo->prepare($query);
+            
+            /*
+            $query = "INSERT INTO estacion_sensor (estacion, sensor) VALUES (:estacion, :sensor)";
+            $stmt = $pdo->prepare($query);
+            $stmt->bindParam(':estacion', $estacion);
+            $stmt->bindParam(':sensor', $sensor);
+            $stmt->execute();
+            */
+
+            // Ejecutar con valores en orden
+            $stmt->execute([$estacion, $sensor]);
+
+            return true;
+        } catch (Exception $e) {
+            throw new RuntimeException('Error al crear sensor: ' . $e->getMessage());
+        }
     }
 }
