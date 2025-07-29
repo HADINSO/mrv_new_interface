@@ -5,12 +5,10 @@ import {
   useJsApiLoader,
   HeatmapLayer,
 } from "@react-google-maps/api";
-import ApiConfig from "../../service/ApiConfig";
 import SidebarInfo from "./SidebarInfo";
-import Images from "../../service/Images";
 import ApiRest from "../../service/ApiRest";
+import images from "../../assets/images/images";
 
-// Interfaz extendida compatible con HistoryItem
 export interface Location {
   id: number;
   nombre: string;
@@ -35,7 +33,6 @@ const GoogleMapComponent: React.FC = () => {
   const [heatmapVisible, setHeatmapVisible] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [locationHistory, setLocationHistory] = useState<Location[]>([]);
-
   const mapRef = useRef<google.maps.Map | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
@@ -43,33 +40,18 @@ const GoogleMapComponent: React.FC = () => {
     libraries: ["visualization"],
   });
 
+  const iconMap: Record<number, string> = {
+    1: images.iconHidrologico,
+    2: images.iconMeteorologico,
+    3: images.iconAire,
+    4: images.iconOtros,
+  };
+
   const fetchAllLocations = async () => {
     try {
       setIsLoading(true);
-      const [axiosRes, fetchRes] = await Promise.all([
-        ApiRest.get("estaciones"),
-        fetch(`${ApiConfig.url}estaciones`),
-      ]);
-
-      const axiosData = axiosRes.data?.data || [];
-
-      if (!fetchRes.ok) throw new Error("Error de conexión en fetch.");
-      const fetchData = await fetchRes.json();
-
-      const combined = [...axiosData, ...fetchData];
-
-      // Validar y convertir los datos si es necesario
-      const parsed: Location[] = combined.map((loc: any) => ({
-        id: loc.id,
-        nombre: loc.nombre,
-        descripcion: loc.descripcion,
-        lat: loc.lat,
-        lng: loc.lng,
-        id_tipo_estacion: loc.id_tipo_estacion || 0,
-        tipo_estacion: loc.tipo_estacion || "Desconocido",
-      }));
-
-      setLocations(parsed);
+      const response = await ApiRest.get("estaciones");
+      setLocations(response.data.data);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -90,28 +72,23 @@ const GoogleMapComponent: React.FC = () => {
     setLocationHistory([]);
   };
 
-  const handleMarkerMouseOver = useCallback(() => {
-    // lógica para hover (opcional)
-  }, []);
-
-  const handleMarkerMouseOut = useCallback(() => {
-    // lógica para hover (opcional)
-  }, []);
-
   if (!isLoaded) return <div>Cargando mapa...</div>;
   if (loadError) return <div>Error al cargar el mapa</div>;
   if (isLoading) return <div className="text-center mt-10">Cargando datos...</div>;
   if (error) return <div className="text-red-500 text-center">{error}</div>;
 
-  const markerIcon = {
-    url: Images.IconGeo,
-    scaledSize: new window.google.maps.Size(75, 75),
-  };
-
   const heatmapData = locations.map(
     (location) =>
       new google.maps.LatLng(parseFloat(location.lat), parseFloat(location.lng))
   );
+
+  // Agrupar estaciones por coordenadas
+  const groupedLocations: Record<string, Location[]> = {};
+  locations.forEach((loc) => {
+    const key = `${loc.lat},${loc.lng}`;
+    if (!groupedLocations[key]) groupedLocations[key] = [];
+    groupedLocations[key].push(loc);
+  });
 
   return (
     <div className="relative w-full h-full">
@@ -130,19 +107,31 @@ const GoogleMapComponent: React.FC = () => {
           />
         )}
 
-        {locations.map((location, index) => (
-          <Marker
-            key={index}
-            position={{
-              lat: parseFloat(location.lat),
-              lng: parseFloat(location.lng),
-            }}
-            icon={markerIcon}
-            onClick={() => handleMarkerClick(location)}
-            onMouseOver={handleMarkerMouseOver}
-            onMouseOut={handleMarkerMouseOut}
-          />
-        ))}
+        {Object.entries(groupedLocations).map(([_, locGroup]) =>
+          locGroup.map((location, i) => {
+            const baseLat = parseFloat(location.lat);
+            const baseLng = parseFloat(location.lng);
+            const offset = 0.00008; // Ajusta este valor para más o menos separación
+            const angle = (i * 45 * Math.PI) / 180; // Distribución circular
+            const latOffset = offset * Math.cos(angle);
+            const lngOffset = offset * Math.sin(angle);
+
+            return (
+              <Marker
+                key={`${location.id}-${i}`}
+                position={{
+                  lat: baseLat + latOffset,
+                  lng: baseLng + lngOffset,
+                }}
+                icon={{
+                  url: iconMap[location.id_tipo_estacion],
+                  scaledSize: new window.google.maps.Size(60, 60),
+                }}
+                onClick={() => handleMarkerClick(location)}
+              />
+            );
+          })
+        )}
       </GoogleMap>
 
       <SidebarInfo
@@ -156,9 +145,7 @@ const GoogleMapComponent: React.FC = () => {
         className="absolute bottom-5 right-5 px-5 py-3 bg-lime-500 hover:bg-lime-600 text-white rounded-lg shadow-md transition"
         onClick={() => setHeatmapVisible((prev) => !prev)}
       >
-        {heatmapVisible
-          ? "Desactivar Mapa de Calor"
-          : "Activar Mapa de Calor"}
+        {heatmapVisible ? "Desactivar Mapa de Calor" : "Activar Mapa de Calor"}
       </button>
     </div>
   );

@@ -31,31 +31,14 @@ const Estacion: React.FC = () => {
   });
 
   const { isOpen, openModal, closeModal } = useModal();
+
   const handleCreate = async () => {
-    if (!newEstacion.nombre.trim()) {
-      alert("El nombre es obligatorio.");
-      return;
-    }
-    if (!newEstacion.descripcion.trim()) {
-      alert("La descripción es obligatoria.");
-      return;
-    }
-    if (!newEstacion.lat.trim()) {
-      alert("La latitud es obligatoria.");
-      return;
-    }
-    if (!newEstacion.lng.trim()) {
-      alert("La longitud es obligatoria.");
-      return;
-    }
-    if (!newEstacion.id_tipo_estacion) {
-      alert("Debe seleccionar un tipo de estación.");
-      return;
-    }
-    if (!newEstacion.imagen) {
-      alert("Debe seleccionar una imagen.");
-      return;
-    }
+    if (!newEstacion.nombre.trim()) return alert("El nombre es obligatorio.");
+    if (!newEstacion.descripcion.trim()) return alert("La descripción es obligatoria.");
+    if (!newEstacion.lat.trim()) return alert("La latitud es obligatoria.");
+    if (!newEstacion.lng.trim()) return alert("La longitud es obligatoria.");
+    if (!newEstacion.id_tipo_estacion) return alert("Debe seleccionar un tipo de estación.");
+    if (!newEstacion.imagen) return alert("Debe seleccionar una imagen.");
 
     const formData = new FormData();
     formData.append("nombre", newEstacion.nombre);
@@ -69,10 +52,7 @@ const Estacion: React.FC = () => {
       const response = await ApiRest.post("add/estacion", formData, {
         headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (e) => {
-          if (e.total) {
-            const percent = Math.round((e.loaded * 100) / e.total);
-            setUploadProgress(percent);
-          }
+          if (e.total) setUploadProgress(Math.round((e.loaded * 100) / e.total));
         },
       });
 
@@ -87,7 +67,7 @@ const Estacion: React.FC = () => {
           descripcion: "",
           lat: "",
           lng: "",
-          id_tipo_estacion: 1,
+          id_tipo_estacion: 0,
           imagen: null,
         });
         setUploadProgress(0);
@@ -102,7 +82,6 @@ const Estacion: React.FC = () => {
     }
   };
 
-
   useEffect(() => {
     ApiRest.get("/tipos-estacion")
       .then((res) => {
@@ -114,7 +93,7 @@ const Estacion: React.FC = () => {
   return (
     <>
       <PageMeta title="Estaciones & Sensores" description="Gestión de estaciones y sensores." />
-      <div className="p-6 rounded-2xl bg-white border border-gray-200 dark:bg-dark-800 dark:border-gray-700">
+      <div className="p-6 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700">
         <div className="flex flex-col md:flex-row items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
             Gestión de Estaciones
@@ -126,42 +105,44 @@ const Estacion: React.FC = () => {
             + Agregar Estación
           </button>
         </div>
-        <div className="bg-white dark:bg-dark-700 rounded-xl p-4 border border-gray-100 dark:border-gray-600 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-600 shadow-sm">
           <EstacionManager />
         </div>
       </div>
 
       <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] p-6 lg:p-10">
         <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar">
-          <h2 className="text-2xl font-bold mb-6 text-center">Crear Nueva Estación</h2>
+          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white">
+            Crear Nueva Estación
+          </h2>
           <div className="space-y-4">
             <input
               type="text"
               placeholder="Nombre"
               value={newEstacion.nombre}
               onChange={(e) => setNewEstacion({ ...newEstacion, nombre: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
             />
             <input
               type="text"
               placeholder="Descripción"
               value={newEstacion.descripcion}
               onChange={(e) => setNewEstacion({ ...newEstacion, descripcion: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
             />
             <input
               type="text"
               placeholder="Latitud"
               value={newEstacion.lat}
               onChange={(e) => setNewEstacion({ ...newEstacion, lat: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
             />
             <input
               type="text"
               placeholder="Longitud"
               value={newEstacion.lng}
               onChange={(e) => setNewEstacion({ ...newEstacion, lng: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
             />
             <select
               value={newEstacion.id_tipo_estacion}
@@ -171,7 +152,7 @@ const Estacion: React.FC = () => {
                   id_tipo_estacion: Number(e.target.value),
                 })
               }
-              className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
             >
               <option value="">Seleccione un tipo de estación</option>
               {tiposEstacion.map((tipo) => (
@@ -190,11 +171,11 @@ const Estacion: React.FC = () => {
                   imagen: e.target.files?.[0] || null,
                 })
               }
-              className="w-full border border-gray-300 rounded-lg p-3 bg-white"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
             />
 
             {uploadProgress > 0 && (
-              <div className="w-full bg-gray-200 rounded-full h-4">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
                 <div
                   className="bg-green-600 h-4 rounded-full text-xs text-white text-center"
                   style={{ width: `${uploadProgress}%` }}
@@ -206,7 +187,7 @@ const Estacion: React.FC = () => {
 
             <button
               onClick={handleCreate}
-              className="w-full bg-green-600 text-white py-3 rounded-full hover:bg-green-700"
+              className="w-full bg-green-600 text-white py-3 rounded-full hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
             >
               Crear Estación
             </button>

@@ -29,6 +29,28 @@ class Sensor
             throw new RuntimeException('Error al obtener estaciones: ' . $e->getMessage());
         }
     }
+    public static function sensorEstacion(int $estacion): array
+    {
+        try {
+            $pdo = Database::connect();
+            $stmt = $pdo->query("
+                SELECT 
+                s.id AS id,
+                s.nombre AS nombre,
+                s.minimo AS minimo,
+                s.maximo AS maximo,
+                s.codigo AS codigo,
+                s.rango_chart AS rango_chart
+                FROM estacion_sensor AS es
+                JOIN sensor AS s ON s.id = es.sensor
+                WHERE es.estacion = $estacion
+            ");
+            $result = $stmt->fetchAll();
+            return $result;
+        } catch (Exception $e) {
+            throw new RuntimeException('Error al obtener estaciones: ' . $e->getMessage());
+        }
+    }
     public static function tipoSensor(): array
     {
         try {
@@ -157,7 +179,7 @@ class Sensor
 
             $query = "INSERT INTO estacion_sensor (estacion, sensor) VALUES (?, ?)";
             $stmt = $pdo->prepare($query);
-            
+
             /*
             $query = "INSERT INTO estacion_sensor (estacion, sensor) VALUES (:estacion, :sensor)";
             $stmt = $pdo->prepare($query);

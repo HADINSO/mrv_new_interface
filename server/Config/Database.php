@@ -2,10 +2,18 @@
 
 class Database
 {
-    private static string $host = 'srv541.hstgr.io';
-    private static string $dbName = 'u335277612_mrv_interface';
-    private static string $username = 'u335277612_root_inter';
-    private static string $password = 'm1?CyActn';
+
+    private static string $host = '162.241.61.138';
+    private static string $dbName = 'siste395_mrv_db_interface';
+    private static string $username = 'siste395_mrv_user_interface';
+    private static string $password = '.{^ojsOG#rua';
+      /*
+    private static string $host = 'localhost';
+    private static string $dbName = 'mrv_db';
+    private static string $username = 'root';
+    private static string $password = '';
+  */
+    
     private static ?PDO $connection = null;
 
     private function __construct() {}

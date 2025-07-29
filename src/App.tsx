@@ -20,6 +20,11 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import Maps from "./pages/Maps/Maps";
 import SensoresPage from "./pages/Sensor";
+import { Monitoreo } from "./pages/Monitoring/Monitoreo";
+import Variables from "./pages/Variables/Variables";
+import Detalles from "./pages/Variables/Detalles";
+import Users from "./pages/Users/Users";
+import Visits from "./pages/Visits/Visits";
 
 export default function App() {
   return (
@@ -29,13 +34,18 @@ export default function App() {
         <Routes>
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
-          <Route index path="/" element={<Maps />} />
+            <Route index path="/" element={<Maps />} />
             <Route index path="/inform/:estacion" element={<Home />} />
+            <Route index path="/monitoring/:id" element={<Monitoreo />} />
+            <Route index path="/monitoring/variables/:id" element={<Variables />} />
+            <Route index path="/monitoring/variables/detalles/:codigo/:id" element={<Detalles />} />
+            <Route index path="/users" element={<Users />} />
             <Route index path="/inform" element={<Home />} />
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/stations" element={<Estacion />} />
             <Route path="/sensors" element={<SensoresPage />} />
+            <Route path="/visits" element={<Visits />} />
             <Route path="/blank" element={<Blank />} />
 
             {/* Forms */}
