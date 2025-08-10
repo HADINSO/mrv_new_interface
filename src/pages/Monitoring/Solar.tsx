@@ -34,7 +34,7 @@ export const Solar = ({ estacion }: Props) => {
     useEffect(() => {
         const fetchData = () => {
             ApiHelsy
-                .get(`PreviewDetailChartsAdvanced/${estacion.id}/V6`)
+                .get(`PreviewDetailChartsAdvanced/17/V4`)
                 .then((res) => setData(res.data))
                 .catch((err) => console.error("Error al cargar datos:", err));
         };

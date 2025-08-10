@@ -1,13 +1,16 @@
 import { FiLogOut } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
-
+import { useNavigate } from "react-router-dom";
 
 export const LogoutButton: React.FC = () => {
   const { logout } = useAuth();
+  const navigate = useNavigate();
+
 
   const handleLogout = async () => {
     try {
       await logout();
+      navigate("/signin"); // o la ruta que desees
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
     }

@@ -1,20 +1,32 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router";
+import { ChevronDownIcon, PlugInIcon } from "../icons";
 import {
-  ChevronDownIcon,
-  GridIcon,
-  PlugInIcon,
-} from "../icons";
-import { MdLocationOn, MdManageAccounts } from "react-icons/md";
+  MdLocationOn,
+  MdManageAccounts,
+  MdReport,
+  MdPeople,
+  MdAttachMoney,
+  MdDescription,
+  MdLogin,
+  MdAppRegistration,
+  MdHome,
+  MdSensors,
+} from "react-icons/md";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
-import { useMemo } from "react";
 
 type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  subItems?: {
+    name: string;
+    path: string;
+    pro?: boolean;
+    new?: boolean;
+    icon?: React.ReactNode;
+  }[];
 };
 
 const othersItems: NavItem[] = [
@@ -22,8 +34,8 @@ const othersItems: NavItem[] = [
     icon: <PlugInIcon />,
     name: "Autenticación",
     subItems: [
-      { name: "Iniciar sesión", path: "/signin", pro: false },
-      { name: "Registro", path: "/signup", pro: false },
+      { name: "Iniciar sesión", path: "/signin", icon: <MdLogin /> },
+      { name: "Registro", path: "/signup", icon: <MdAppRegistration /> },
     ],
   },
 ];
@@ -33,49 +45,59 @@ const AppSidebar: React.FC = () => {
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
 
-const navItems: NavItem[] = useMemo(() => {
-  const items: NavItem[] = [
-    {
-      icon: <GridIcon />,
-      name: "Estaciones",
-      subItems: [
-        { name: "Maps", path: "/", pro: false },
-        { name: "Informe", path: "/inform", pro: false },
-      ],
-    },
-  ];
-
-  if (isAuthenticated && user?.idrol === 1) {
-    items.push(
+  const navItems: NavItem[] = useMemo(() => {
+    const items: NavItem[] = [
       {
-        icon: <MdLocationOn />,
-        name: "Estaciones & sensores",
+        icon: <MdHome />,
+        name: "Estaciones",
         subItems: [
-          { name: "Estaciones", path: "/stations", pro: false },
-          { name: "Sensores", path: "/sensors", pro: false },
+          { name: "Maps", path: "/", icon: <MdLocationOn /> },
+          { name: "Informe", path: "/inform", icon: <MdReport /> },
         ],
       },
-      {
-        icon: <MdManageAccounts />,
-        name: "Gestión & usuarios",
-        subItems: [
-          { name: "Usuarios", path: "/users", pro: false },
-          { name: "Clientes", path: "/customers", pro: false },
-          { name: "Registro Visitas", path: "/visits", pro: false },
-        ],
-      }
-    );
-  }
+    ];
 
-  return items;
-}, [isAuthenticated, user?.idrol]);
+    if (isAuthenticated && user?.idrol === 1) {
+      items.push(
+        {
+          icon: <MdLocationOn />,
+          name: "Estaciones & sensores",
+          subItems: [
+            { name: "Estaciones", path: "/stations", icon: <MdLocationOn /> },
+            { name: "Sensores", path: "/sensors", icon: <MdSensors /> },
+          ],
+        },
+        {
+          icon: <MdManageAccounts />,
+          name: "Gestión & usuarios",
+          subItems: [
+            { name: "Usuarios", path: "/users", icon: <MdPeople /> },
+            { name: "Clientes", path: "/customers", icon: <MdPeople /> },
+            { name: "Registro Visitas", path: "/visits", icon: <MdManageAccounts /> },
+          ],
+        },
+        {
+          icon: <MdDescription />,
+          name: "Información y precios",
+          subItems: [
+            { name: "Comunas", path: "/comunas", icon: <MdLocationOn /> },
+            { name: "Precios", path: "/precios", icon: <MdAttachMoney /> },
+            { name: "Documentación", path: "/docs", icon: <MdDescription /> },
+          ],
+        }
+      );
+    }
+
+    return items;
+  }, [isAuthenticated, user?.idrol]);
+
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
     index: number;
   } | null>(null);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
-    {}
-  );
+
+  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
+
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const isActive = useCallback(
@@ -223,6 +245,9 @@ const navItems: NavItem[] = useMemo(() => {
                           : "menu-dropdown-item-inactive"
                       }`}
                     >
+                      <span className="mr-2 inline-block text-lg">
+                        {subItem.icon}
+                      </span>
                       {subItem.name}
                       <span className="flex items-center gap-1 ml-auto">
                         {subItem.new && (
@@ -283,26 +308,21 @@ const navItems: NavItem[] = useMemo(() => {
             <>
               <img
                 className="dark:hidden"
-                src="/images/logo/logo.svg"
+                src="/images/LOGO-2-0.png"
                 alt="Logo"
-                width={150}
+                width={130}
                 height={40}
               />
               <img
                 className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
+                src="/images/LOGO-2-0-DARK.png"
                 alt="Logo"
                 width={150}
                 height={40}
               />
             </>
           ) : (
-            <img
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
+            <img src="/images/mrv_logo.png" alt="Logo" width={60} height={60} />
           )}
         </Link>
       </div>
@@ -310,12 +330,12 @@ const navItems: NavItem[] = useMemo(() => {
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
             <div>
-              <h2 className="...">Menu</h2>
+              <h2 className="text-gray-500 uppercase font-semibold text-xs mb-2">Menu</h2>
               {renderMenuItems(navItems, "main")}
             </div>
 
             <div>
-              <h2 className="...">Más...</h2>
+              <h2 className="text-gray-500 uppercase font-semibold text-xs mb-2">Más...</h2>
               {renderMenuItems(
                 isAuthenticated
                   ? othersItems.filter((item) => item.name !== "Autenticación")

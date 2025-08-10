@@ -41,10 +41,10 @@ const GoogleMapComponent: React.FC = () => {
   });
 
   const iconMap: Record<number, string> = {
-    1: images.iconHidrologico,
-    2: images.iconMeteorologico,
-    3: images.iconAire,
-    4: images.iconOtros,
+    1: '/images/IconGeo.png',
+    2: '/images/IconGeo.png',
+    3: '/images/IconGeo.png',
+    4: '/images/IconGeo.png',
   };
 
   const fetchAllLocations = async () => {
