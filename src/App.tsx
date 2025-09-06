@@ -54,16 +54,12 @@ export default function App() {
           <Route index element={<Maps />} />
           <Route path="/inform" element={<Home />} />
           <Route path="/inform/:estacion" element={<Home />} />
-
-          {/* 🔐 Privadas (solo si está autenticado) */}
+          <Route path="/monitoring/:id" element={<Monitoreo />} />
+          <Route path="/monitoring/variables/:id" element={<Variables />} />
+          <Route path="/monitoring/variables/detalles/:codigo/:id" element={<Detalles />}/>
+          {/* Privadas (solo si está autenticado) */}
           {isAuthenticated && (
             <>
-              <Route path="/monitoring/:id" element={<Monitoreo />} />
-              <Route path="/monitoring/variables/:id" element={<Variables />} />
-              <Route
-                path="/monitoring/variables/detalles/:codigo/:id"
-                element={<Detalles />}
-              />
               <Route path="/comunas" element={<Comunas />} />
               <Route path="/precios" element={<Precios />} />
               <Route path="/users" element={<Users />} />
@@ -90,6 +86,7 @@ export default function App() {
 
         {/* 🔐 Rutas de autenticación */}
         <Route path="/signin" element={<SignIn />} />
+        <Route path="/signin/:ruta" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
 
         {/* ❌ 404 */}

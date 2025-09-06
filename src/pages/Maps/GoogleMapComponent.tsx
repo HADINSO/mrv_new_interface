@@ -7,7 +7,6 @@ import {
 } from "@react-google-maps/api";
 import SidebarInfo from "./SidebarInfo";
 import ApiRest from "../../service/ApiRest";
-import images from "../../assets/images/images";
 
 export interface Location {
   id: number;

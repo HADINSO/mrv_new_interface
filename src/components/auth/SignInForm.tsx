@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
@@ -15,14 +15,25 @@ export default function SignInForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { ruta } = useParams<{ ruta: string }>();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const rutaDecodificada = ruta
+      ? decodeURIComponent(ruta)
+      : "/";
+
     setLoading(true);
     try {
       await login(username, password);
       toast.success("Inicio de sesión exitoso 🎉");
-      navigate("/");
+      if (rutaDecodificada === "/") {
+        navigate("/");
+      } else {
+        navigate(rutaDecodificada);
+      }
+
     } catch (err) {
       toast.error("Usuario o contraseña incorrectos.");
     } finally {

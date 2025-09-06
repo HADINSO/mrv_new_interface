@@ -35,7 +35,7 @@ const icons = {
 
 const sensores = [
   { key: "radiation", title: "Radiación Solar", code: "V4", unit: "W/m²" },
-  { key: "noise", title: "Ruido Ambiental", code: "V6", unit: "%" },
+  { key: "noise", title: "Ruido Ambiental", code: "V6", unit: "db" },
   { key: "co2", title: "CO₂", code: "V12", unit: "ppm" },
   { key: "hcho", title: "HCHO", code: "V11", unit: "mg/m³" },
   { key: "tvoc", title: "TVOC", code: "V15", unit: "mg/m³" },

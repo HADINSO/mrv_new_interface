@@ -4,7 +4,7 @@ import { ChevronDownIcon, PlugInIcon } from "../icons";
 import {
   MdLocationOn,
   MdManageAccounts,
-  MdReport,
+  //MdReport,
   MdPeople,
   MdAttachMoney,
   MdDescription,
@@ -52,7 +52,7 @@ const AppSidebar: React.FC = () => {
         name: "Estaciones",
         subItems: [
           { name: "Maps", path: "/", icon: <MdLocationOn /> },
-          { name: "Informe", path: "/inform", icon: <MdReport /> },
+        //  { name: "Informe", path: "/inform", icon: <MdReport /> },
         ],
       },
     ];

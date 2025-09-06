@@ -1,4 +1,4 @@
-// src/components/MapaQuibdo.tsx
+// @ts-nocheck
 import React, { useState } from "react";
 import { FaMapMarkerAlt } from "react-icons/fa";
 

@@ -31,14 +31,14 @@ type Props = {
 
 export const Solar = ({ estacion }: Props) => {
     const [data, setData] = useState<Registro[]>([]);
+
     useEffect(() => {
         const fetchData = () => {
             ApiHelsy
-                .get(`PreviewDetailChartsAdvanced/17/V4`)
+                .get(`PreviewDetailChartsAdvancedSolar/17/V4`)
                 .then((res) => setData(res.data))
                 .catch((err) => console.error("Error al cargar datos:", err));
         };
-        console.log(data)
         // Llamada inicial
         fetchData();
 
@@ -49,13 +49,20 @@ export const Solar = ({ estacion }: Props) => {
         return () => clearInterval(interval);
     }, [estacion.id]);
 
-
     const parsedData = useMemo(() => {
-        return data.map((item) => ({
-            ...item,
-            valor: parseFloat(item.lectura),
-            fechaObj: new Date(item.fecha),
-        }));
+        return data
+            .map((item) => {
+                // Extraer solo la parte numérica usando expresión regular
+                const match = item.lectura.match(/[\d.]+/);
+                const valor = match ? parseFloat(match[0]) : NaN;
+                return {
+                    ...item,
+                    valor,
+                    fechaObj: new Date(item.fecha),
+                };
+            })
+            // Filtrar valores no numéricos o fuera de rango esperado (ajusta rango si es necesario)
+            .filter(item => !isNaN(item.valor) && item.valor >= 0 && item.valor <= 1000);
     }, [data]);
 
     const exampleData = useMemo(() => {
@@ -138,10 +145,14 @@ export const Solar = ({ estacion }: Props) => {
 
         const labels = horas;
         const direct = labels.map((label) =>
-            porHora[label] ? Math.round(Math.max(...porHora[label]) * 0.5) : 0
+            porHora[label] && porHora[label].length > 0
+                ? Math.round(Math.max(...porHora[label]) * 0.5)
+                : 0
         );
         const diffuse = labels.map((label) =>
-            porHora[label] ? Math.round(Math.min(...porHora[label]) * 0.3) : 0
+            porHora[label] && porHora[label].length > 0
+                ? Math.round(Math.min(...porHora[label]) * 0.3)
+                : 0
         );
         const global = labels.map((_, i) => direct[i] + diffuse[i]);
         const average = labels.map((_, i) => Math.round((global[i] + diffuse[i]) / 2));
@@ -174,7 +185,6 @@ export const Solar = ({ estacion }: Props) => {
             valores.length ? +(valores.reduce((a, b) => a + b, 0) / valores.length).toFixed(2) : 0
         );
 
-
         const promedioDiario = parsedData.length
             ? +(parsedData.reduce((a, b) => a + b.valor, 0) / parsedData.length).toFixed(2)
             : 0;
@@ -190,19 +200,24 @@ export const Solar = ({ estacion }: Props) => {
             <PageMeta title="Radiación Solar" description="Monitoreo de la estación." />
             <div className="grid grid-cols-12 gap-4 md:gap-6">
                 <div className="col-span-12 md:col-span-6">
+                    {/**Radiación Solar */}
                     <SolarRadiationChart data={exampleData} />
                 </div>
 
                 <div className="col-span-12 md:col-span-6">
+                    {/*Radiación Solar - Barras */}
                     <SolarRadiationBarChart data={exampleData2} />
                 </div>
 
                 <div className="col-span-12 md:col-span-6">
+                    {/*Radiación Solar - Heatmap */}
                     <SolarRadiationHeatmap data={exampleData3} />
+                    {/**Radiación Solar - Radar */}
                     <SolarRadiationStackedChart data={stackedData} />
                 </div>
 
                 <div className="col-span-12 md:col-span-6">
+                    {/**Radiación Solar - Apilado */}
                     <SolarRadiationRadarChart labels={radar.labels} values={radar.values} />
                 </div>
             </div>

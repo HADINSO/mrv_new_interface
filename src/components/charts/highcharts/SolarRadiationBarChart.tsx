@@ -26,6 +26,7 @@ interface RadiationData {
 }
 
 const SolarRadiationBarChart: React.FC<{ data: RadiationData }> = ({ data }) => {
+  console.log(data)
   if (!data || data.timestamps.length === 0 || data.values.length === 0) {
     return <p className="text-center text-red-600">No hay datos de radiación para mostrar.</p>;
   }

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import ApiHelsy from "../../service/ApiHelsy";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import EnvironmentalChart from "./EnvironmentalChart";
 import EnvironmentalPolarChart from "./EnvironmentalPolarChart";
 import InformeLecturas from "./InformeLecturas";
+import { useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 interface Lectura {
     id: number;
@@ -30,53 +32,65 @@ const VARIABLES_MAP: Record<string, string> = {
     V16: "Óxidos de Nitrógeno (NOx) μg/m³",
 };
 
-const Detalles = () => {
+const Detalles: React.FC = () => {
     const { codigo, id } = useParams<{ codigo: string; id: string }>();
     const [datos, setDatos] = useState<Lectura[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [prompt, setPrompt] = useState<string>("");
 
+    const navigate = useNavigate();
+    const location = useLocation();
+    const ruta_actual = location.pathname;
+    const { isAuthenticated } = useAuth();
+    // Redirección si no está autenticado
+    useEffect(() => {
+        if (!isAuthenticated) {
+            const rutaCodificada = encodeURIComponent(ruta_actual);
+            navigate(`/signin/${rutaCodificada}`);
+        }
+    }, [isAuthenticated, navigate, ruta_actual]);
+
+    // Carga de datos
     useEffect(() => {
         if (!codigo || !id) return;
 
-        const fetchData = () => {
-            setLoading(true);
-            ApiHelsy.get(`PreviewDetailChartsAdvanced/${id}/${codigo}`)
-                .then((res) => {
-                    const data = res.data;
-                    if (Array.isArray(data) && data.length > 0) {
-                        const datosConCodigo = data.map((item: any) => ({
-                            ...item,
-                            codigo: codigo,
-                        }));
-                        setDatos(datosConCodigo);
-                        generarPrompt(datosConCodigo);
-                    } else {
-                        setDatos([]);
-                    }
-                })
-                .catch((err) => {
-                    console.error(`Error al obtener datos de ${codigo}`, err);
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const res = await ApiHelsy.get(`PreviewDetailChartsAdvanced/${id}/${codigo}`);
+                const data: unknown = res.data;
+
+                if (Array.isArray(data) && data.length > 0) {
+                    const datosConCodigo: Lectura[] = data.map((item: any) => ({
+                        ...item,
+                        codigo,
+                    }));
+                    setDatos(datosConCodigo);
+                    generarPrompt(datosConCodigo);
+                } else {
                     setDatos([]);
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
+                }
+            } catch (err) {
+                console.error(`Error al obtener datos de ${codigo}`, err);
+                setDatos([]);
+            } finally {
+                setLoading(false);
+            }
         };
 
         fetchData(); // Llamada inicial
-
-        const interval = setInterval(fetchData, 30000); // Actualiza cada 30 segundos
-
-        return () => clearInterval(interval); // Limpia al desmontar el componente
+        const interval = setInterval(fetchData, 30000); // Actualiza cada 30s
+        return () => clearInterval(interval);
     }, [codigo, id]);
 
+    // Generación del prompt
     const generarPrompt = (datos: Lectura[]) => {
         const valoresPorFecha: Record<string, string[]> = {};
 
         datos.forEach((lectura) => {
             const fecha = lectura.fecha;
-            const variableNombre = VARIABLES_MAP[lectura.codigo || ""] || lectura.codigo || "Desconocida";
+            const variableNombre =
+                VARIABLES_MAP[lectura.codigo || ""] || lectura.codigo || "Desconocida";
             const texto = `${variableNombre}: ${lectura.lectura}`;
 
             if (!valoresPorFecha[fecha]) {
@@ -85,71 +99,19 @@ const Detalles = () => {
             valoresPorFecha[fecha].push(texto);
         });
 
-        let textoFinal = `Descripción general del dataset:
+        let textoFinal = `Descripción general del dataset:\n\n
+- Número total de registros (observaciones)\n
+- Número total de columnas\n
+- Tipo de cada variable: cuantitativa (continua o discreta), cualitativa (nominal u ordinal)\n
+- Conteo de valores faltantes por variable\n
+- Medidas de tendencia central: media, mediana, moda\n
+- Medidas de dispersión: rango, varianza, desviación estándar, coeficiente de variación, rango intercuartílico (IQR)\n
+- Medidas de forma: asimetría (skewness), curtosis (kurtosis)\n
+- Tablas de frecuencia: absoluta, relativa, acumulada\n
+- Visualizaciones sugeridas: histogramas, boxplots, gráficos de barras/pastel, diagramas de dispersión\n
+- Identificación de valores atípicos (boxplots, regla de 1.5 × IQR)\n
+- Análisis de correlación (Pearson/Spearman según el caso)\n\n`;
 
-            Número total de registros (observaciones)
-
-            Número total de columnas 
-
-            Tipo de cada variable: cuantitativa (continua o discreta), cualitativa (nominal u ordinal)
-
-            Conteo de valores faltantes por variable
-
-            Medidas de tendencia central :
-
-            Media
-
-            Mediana
-
-            Moda
-
-            Medidas de dispersión :
-
-            Rango
-
-            Varianza
-
-            Desviación estándar
-
-            Coeficiente de variación
-
-            Rango intercuartílico (IQR)
-
-            Medidas de forma:
-
-            Asimetría (skewness)
-
-            Curtosis (kurtosis)
-
-            Tablas de frecuencia :
-
-            Frecuencia absoluta
-
-            Frecuencia relativa
-
-            Frecuencia acumulada
-
-            Visualizaciones sugeridas (describir, no generar):
-
-            Histogramas para variables numéricas
-
-            Boxplots para análisis de dispersión y outliers
-
-            Gráficos de barras y de pastel para variables categóricas
-
-            Diagramas de dispersión (scatter plots) si hay variables numéricas relacionadas
-
-            Identificación de valores atípicos:
-
-            Método visual: análisis mediante boxplots
-
-            Método estadístico: utilizando la regla de 1.5 × IQR
-
-            Análisis de correlación (si hay más de una variable numérica):
-
-            Matriz de correlación de Pearson (si los datos son normales)
-
-            Matriz de Spearman (si los datos no son normales)`;
         Object.entries(valoresPorFecha).forEach(([fecha, valores]) => {
             textoFinal += `Fecha: ${fecha}\n`;
             textoFinal += valores.join("\n") + "\n\n";
