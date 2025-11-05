@@ -25,13 +25,22 @@ interface AuthContextProps {
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    // Cargar usuario desde localStorage con validación segura
     const [user, setUser] = useState<User | null>(() => {
-        const storedUser = localStorage.getItem('user');
-        return storedUser ? JSON.parse(storedUser) : null;
+        try {
+            const storedUser = localStorage.getItem('user');
+            if (!storedUser || storedUser === 'undefined' || storedUser === 'null') return null;
+            return JSON.parse(storedUser);
+        } catch (error) {
+            console.error('Error al parsear usuario guardado:', error);
+            localStorage.removeItem('user');
+            return null;
+        }
     });
 
     const [token, setToken] = useState<string | null>(() => {
-        return localStorage.getItem('token');
+        const storedToken = localStorage.getItem('token');
+        return storedToken && storedToken !== 'undefined' ? storedToken : null;
     });
 
     const [loading, setLoading] = useState(true);
@@ -39,31 +48,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const login = async (username: string, password: string) => {
         try {
             const formData = new FormData();
-            formData.append("username", username);
-            formData.append("password", password);
+            formData.append('username', username);
+            formData.append('password', password);
 
-            const response = await axios.post("https://api.helsy.com.co/iniciarSesion.php", formData);
-            const { token, user } = response.data;
+            const response = await axios.post('https://api.helsy.com.co/iniciarSesion.php', formData);
+            const { token, user, message } = response.data;
 
+            // Verifica si la respuesta contiene datos válidos
+            if (!token || !user) {
+                throw new Error(message || 'No se pudo iniciar sesión. Verifica tus credenciales.');
+            }
+
+            // Guardar token y usuario
             setToken(token);
             setUser(user);
-            localStorage.setItem("token", token);
-            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify(user));
         } catch (error: any) {
-            console.error("Error de autenticación:", error?.response?.data || error.message);
-            throw new Error("Credenciales inválidas o error de red.");
+            console.error('Error de autenticación:', error?.response?.data || error.message);
+            throw new Error('Credenciales inválidas o error de red.');
         }
     };
 
     const logout = async () => {
         setToken(null);
         setUser(null);
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
     };
 
     const checkToken = async () => {
-        // Placeholder para cumplir con la interfaz (no implementado como se indicó)
+        // Método opcional para verificar validez del token
         return;
     };
 
@@ -87,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 login,
                 logout,
                 checkToken,
-                isAuthenticated: !!user,
+                isAuthenticated: !!user && !!token,
             }}
         >
             {children}
@@ -97,6 +112,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (!context) throw new Error("useAuth must be used within AuthProvider");
+    if (!context) throw new Error('useAuth must be used within AuthProvider');
     return context;
 };

@@ -40,17 +40,19 @@ const GoogleMapComponent: React.FC = () => {
   });
 
   const iconMap: Record<number, string> = {
-    1: '/images/IconGeo.png',
-    2: '/images/IconGeo.png',
-    3: '/images/IconGeo.png',
-    4: '/images/IconGeo.png',
+    1: "/images/IconGeo.png",
+    2: "/images/IconGeo.png",
+    3: "/images/IconGeo.png",
+    4: "/images/IconGeo.png",
   };
 
+  // 🛰️ Carga de ubicaciones desde la API
   const fetchAllLocations = async () => {
     try {
       setIsLoading(true);
       const response = await ApiRest.get("estaciones");
-      setLocations(response.data.data);
+      console.log("Datos de estaciones recibidos:", response.data);
+      setLocations(response.data.data || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -76,10 +78,16 @@ const GoogleMapComponent: React.FC = () => {
   if (isLoading) return <div className="text-center mt-10">Cargando datos...</div>;
   if (error) return <div className="text-red-500 text-center">{error}</div>;
 
-  const heatmapData = locations.map(
-    (location) =>
-      new google.maps.LatLng(parseFloat(location.lat), parseFloat(location.lng))
-  );
+  // 🧭 Limpieza de datos: convierte comas a puntos en coordenadas
+  const safeParse = (value: string): number =>
+    parseFloat(value.replace(",", "."));
+
+  const heatmapData = locations
+    .filter((l) => l.lat && l.lng)
+    .map(
+      (location) =>
+        new google.maps.LatLng(safeParse(location.lat), safeParse(location.lng))
+    );
 
   // Agrupar estaciones por coordenadas
   const groupedLocations: Record<string, Location[]> = {};
@@ -95,23 +103,36 @@ const GoogleMapComponent: React.FC = () => {
         mapContainerStyle={containerStyle}
         center={center}
         zoom={14.5}
-        onLoad={(map) => {
-          mapRef.current = map;
-        }}
+        onLoad={(map) => (mapRef.current = map)}
       >
+        {/* 🔥 Capa de Mapa de Calor (visible solo si está activado) */}
         {heatmapVisible && (
           <HeatmapLayer
             data={heatmapData}
-            options={{ radius: 120, opacity: 0.6 }}
+            options={{
+              radius: 100,
+              opacity: 0.3,
+              dissipating: true,
+              gradient: [
+                "rgba(0, 255, 255, 0)",
+                "rgba(0, 255, 255, 1)",
+                "rgba(0, 191, 255, 1)",
+                "rgba(0, 127, 255, 1)",
+                "rgba(0, 63, 255, 1)",
+                "rgba(0, 0, 255, 1)",
+                "rgba(255, 0, 0, 1)",
+              ],
+            }}
           />
         )}
 
+        {/* 📍 Marcadores individuales */}
         {Object.entries(groupedLocations).map(([_, locGroup]) =>
           locGroup.map((location, i) => {
-            const baseLat = parseFloat(location.lat);
-            const baseLng = parseFloat(location.lng);
-            const offset = 0.00008; // Ajusta este valor para más o menos separación
-            const angle = (i * 45 * Math.PI) / 180; // Distribución circular
+            const baseLat = safeParse(location.lat);
+            const baseLng = safeParse(location.lng);
+            const offset = 0.00004; // separación visual
+            const angle = (i * 45 * Math.PI) / 180; // distribución circular
             const latOffset = offset * Math.cos(angle);
             const lngOffset = offset * Math.sin(angle);
 
@@ -123,8 +144,8 @@ const GoogleMapComponent: React.FC = () => {
                   lng: baseLng + lngOffset,
                 }}
                 icon={{
-                  url: iconMap[location.id_tipo_estacion],
-                  scaledSize: new window.google.maps.Size(60, 60),
+                  url: iconMap[location.id_tipo_estacion] || "/images/IconGeo.png",
+                  scaledSize: new window.google.maps.Size(50, 50),
                 }}
                 onClick={() => handleMarkerClick(location)}
               />
@@ -133,6 +154,7 @@ const GoogleMapComponent: React.FC = () => {
         )}
       </GoogleMap>
 
+      {/* 📋 Barra lateral con historial */}
       <SidebarInfo
         history={locationHistory}
         visible={sidebarVisible}
@@ -140,6 +162,7 @@ const GoogleMapComponent: React.FC = () => {
         onClearHistory={handleClearHistory}
       />
 
+      {/* 🔘 Botón para activar/desactivar mapa de calor */}
       <button
         className="absolute bottom-5 right-5 px-5 py-3 bg-lime-500 hover:bg-lime-600 text-white rounded-lg shadow-md transition"
         onClick={() => setHeatmapVisible((prev) => !prev)}
