@@ -35,7 +35,6 @@ const VARIABLES_MAP: Record<string, string> = {
 const Detalles: React.FC = () => {
     const { codigo, id } = useParams<{ codigo: string; id: string }>();
     const [datos, setDatos] = useState<Lectura[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
     const [prompt, setPrompt] = useState<string>("");
 
     const navigate = useNavigate();
@@ -56,7 +55,6 @@ const Detalles: React.FC = () => {
 
         const fetchData = async () => {
             try {
-                setLoading(true);
                 const res = await ApiHelsy.get(`PreviewDetailChartsAdvanced/${id}/${codigo}`);
                 const data: unknown = res.data;
 
@@ -73,13 +71,11 @@ const Detalles: React.FC = () => {
             } catch (err) {
                 console.error(`Error al obtener datos de ${codigo}`, err);
                 setDatos([]);
-            } finally {
-                setLoading(false);
             }
         };
 
-        fetchData(); // Llamada inicial
-        const interval = setInterval(fetchData, 30000); // Actualiza cada 30s
+        fetchData();
+        const interval = setInterval(fetchData, 30000);
         return () => clearInterval(interval);
     }, [codigo, id]);
 
@@ -123,21 +119,17 @@ const Detalles: React.FC = () => {
     return (
         <div className="p-6 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700">
             <div className="overflow-x-auto">
-                {loading ? (
-                    <p className="text-center text-gray-700 dark:text-gray-300">Cargando datos...</p>
-                ) : (
-                    <div className="grid grid-cols-12 gap-6">
-                        <div className="col-span-12 space-y-6 xl:col-span-7">
-                            <EnvironmentalChart data={datos} code={codigo || ""} />
-                        </div>
-                        <div className="col-span-12 xl:col-span-5">
-                            <EnvironmentalPolarChart data={datos} code={codigo || ""} />
-                        </div>
-                        <div className="col-span-12">
-                            <InformeLecturas prompt={prompt} />
-                        </div>
+                <div className="grid grid-cols-12 gap-6">
+                    <div className="col-span-12 space-y-6 xl:col-span-7">
+                        <EnvironmentalChart data={datos} code={codigo || ""} />
                     </div>
-                )}
+                    <div className="col-span-12 xl:col-span-5">
+                        <EnvironmentalPolarChart data={datos} code={codigo || ""} />
+                    </div>
+                    <div className="col-span-12">
+                        <InformeLecturas prompt={prompt} />
+                    </div>
+                </div>
             </div>
         </div>
     );
