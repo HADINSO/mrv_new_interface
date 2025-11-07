@@ -103,6 +103,7 @@ const GoogleMapComponent: React.FC = () => {
         mapContainerStyle={containerStyle}
         center={center}
         zoom={14.5}
+        // @ts-ignore
         onLoad={(map) => (mapRef.current = map)}
       >
         {/* 🔥 Capa de Mapa de Calor (visible solo si está activado) */}
