@@ -28,7 +28,6 @@
     "chartjs-chart-matrix": "^3.0.0",
     "clsx": "^2.1.1",
     "flatpickr": "^4.6.13",
-    "google-maps-react": "^2.0.6",
     "highcharts": "^12.2.0",
     "highcharts-react-official": "^3.2.2",
     "lucide-react": "^0.511.0",
