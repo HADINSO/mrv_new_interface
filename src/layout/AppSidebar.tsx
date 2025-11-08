@@ -200,6 +200,7 @@ const AppSidebar: React.FC = () => {
             {/* Submenú */}
             {nav.subItems && isSidebarOpen && (
               <div
+                //@ts-ignore
                 ref={(el) => (subMenuRefs.current[key] = el)}
                 className="overflow-hidden transition-all duration-300 ml-4"
                 style={{ height: isOpen ? `${subMenuHeight[key]}px` : "0px" }}
