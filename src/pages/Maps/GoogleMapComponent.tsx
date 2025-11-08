@@ -127,7 +127,7 @@ const GoogleMapComponent: React.FC = () => {
           />
         )}
 
-        {/* 📍 Marcadores individuales */}
+
         {Object.entries(groupedLocations).map(([_, locGroup]) =>
           locGroup.map((location, i) => {
             const baseLat = safeParse(location.lat);
@@ -155,7 +155,7 @@ const GoogleMapComponent: React.FC = () => {
         )}
       </GoogleMap>
 
-      {/* 📋 Barra lateral con historial */}
+
       <SidebarInfo
         history={locationHistory}
         visible={sidebarVisible}
@@ -163,7 +163,7 @@ const GoogleMapComponent: React.FC = () => {
         onClearHistory={handleClearHistory}
       />
 
-      {/* 🔘 Botón para activar/desactivar mapa de calor */}
+
       <button
         className="absolute bottom-5 right-5 px-5 py-3 bg-lime-500 hover:bg-lime-600 text-white rounded-lg shadow-md transition"
         onClick={() => setHeatmapVisible((prev) => !prev)}

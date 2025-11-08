@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 interface Sensor {
     id: number;
     nombre: string;
-    nombre_tipo_sensor: string; 
+    nombre_tipo_sensor: string;
 }
 
 interface ApiResponse<T> {
@@ -78,38 +78,84 @@ export const AgregarSensorButton: React.FC<AgregarSensorButtonProps> = ({ estaci
 
     return (
         <>
+            {/* 1. Botón flotante (FAB) - Verde principal */}
             <button
                 onClick={() => {
                     openModal();
                     fetchSensores();
                 }}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                className="fixed bottom-6 right-6 z-10 bg-green-600 text-white p-4 rounded-full shadow-xl hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-400 focus:ring-opacity-50"
+                aria-label="Agregar un nuevo sensor"
             >
-                <FaPlus />
-                Agregar Sensor
+                <FaPlus className="h-6 w-6" />
             </button>
 
-            <Modal isOpen={isOpen} onClose={closeModal} className="max-w-3xl p-8">
-                <h2 className="text-2xl font-bold mb-6 text-center">Agregar Sensor a la Estación</h2>
-                <div className="space-y-4">
-                    <label className="block text-gray-700">Selecciona un Sensor</label>
-                    <select
-                        value={selectedSensor ?? ""}
-                        onChange={(e) => setSelectedSensor(Number(e.target.value))}
-                        className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-500"
+            {/* 2. Modal ampliado (15% más grande) */}
+            <Modal
+                isOpen={isOpen}
+                onClose={closeModal}
+                className="max-w-lg w-full p-0 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl transition-colors duration-300"
+            >
+                {/* Encabezado */}
+                <div className="p-8 border-b border-gray-100 dark:border-gray-700">
+                    <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white text-center">
+                        ➕ Agregar Sensor a la Estación
+                    </h2>
+                </div>
+
+                {/* Cuerpo */}
+                <div className="p-8 space-y-6">
+                    <label
+                        htmlFor="sensor-select"
+                        className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
                     >
-                        <option value="">-- Selecciona un sensor --</option>
-                        {sensores.map((sensor) => (
-                            <option key={sensor.id} value={sensor.id}>
-                                {sensor.nombre} ({sensor.nombre_tipo_sensor})
+                        Selecciona un Sensor
+                    </label>
+
+                    <div className="relative">
+                        <select
+                            id="sensor-select"
+                            value={selectedSensor ?? ""}
+                            onChange={(e) => setSelectedSensor(Number(e.target.value))}
+                            className="appearance-none w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg py-3 px-4 pr-10 focus:outline-none focus:ring-4 focus:ring-green-500 focus:border-green-500 transition-colors duration-200 cursor-pointer"
+                        >
+                            <option
+                                value=""
+                                disabled
+                                className="text-gray-400 dark:text-gray-500"
+                            >
+                                -- Selecciona un sensor --
                             </option>
-                        ))}
-                    </select>
+                            {sensores.map((sensor) => (
+                                <option
+                                    key={sensor.id}
+                                    value={sensor.id}
+                                    className="text-gray-800 dark:text-white bg-white dark:bg-gray-700"
+                                >
+                                    {sensor.nombre} ({sensor.nombre_tipo_sensor})
+                                </option>
+                            ))}
+                        </select>
+
+                        {/* Flecha de select */}
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
+                            <svg
+                                className="fill-current h-4 w-4"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 20 20"
+                            >
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    {/* Botón Confirmar */}
                     <button
                         onClick={handleAgregarSensor}
-                        className="w-full bg-green-600 text-white py-3 rounded-full hover:bg-green-700 transition-all"
+                        className="w-full bg-green-600 text-white text-lg font-semibold py-3 mt-6 rounded-xl shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50"
+                        disabled={!selectedSensor}
                     >
-                        Agregar Sensor
+                        Confirmar y Agregar
                     </button>
                 </div>
             </Modal>

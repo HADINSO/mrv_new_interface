@@ -93,57 +93,62 @@ const Estacion: React.FC = () => {
   return (
     <>
       <PageMeta title="Estaciones & Sensores" description="Gestión de estaciones y sensores." />
-      <div className="p-6 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+
+      <div className="p-8 rounded-2xl bg-white border border-gray-200 shadow-lg dark:bg-gray-900 dark:border-gray-700 transition-all duration-300">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8">
+          <h1 className="text-3xl font-semibold text-gray-800 dark:text-white tracking-tight">
             Gestión de Estaciones
           </h1>
           <button
             onClick={openModal}
-            className="mt-4 md:mt-0 px-5 py-2.5 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 transition dark:bg-brand-400 dark:hover:bg-brand-500"
+            className="mt-4 md:mt-0 px-6 py-2.5 bg-green-600 text-white font-medium rounded-xl shadow-md hover:shadow-lg hover:bg-green-700 focus:ring-2 focus:ring-green-400 focus:outline-none transition-all duration-300 dark:bg-green-500 dark:hover:bg-green-600"
           >
             + Agregar Estación
           </button>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-600 shadow-sm">
+
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-5 border border-gray-100 dark:border-gray-700 shadow-inner">
           <EstacionManager />
         </div>
       </div>
 
-      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] p-6 lg:p-10">
-        <div className="flex flex-col px-2 overflow-y-auto custom-scrollbar">
-          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white">
+      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] p-8 lg:p-10 rounded-2xl">
+        <div className="flex flex-col space-y-6 px-2 overflow-y-auto custom-scrollbar">
+          <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
             Crear Nueva Estación
           </h2>
-          <div className="space-y-4">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input
               type="text"
               placeholder="Nombre"
               value={newEstacion.nombre}
               onChange={(e) => setNewEstacion({ ...newEstacion, nombre: e.target.value })}
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
+              className="col-span-2 border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
             />
-            <input
-              type="text"
+
+            <textarea
               placeholder="Descripción"
               value={newEstacion.descripcion}
               onChange={(e) => setNewEstacion({ ...newEstacion, descripcion: e.target.value })}
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
+              className="col-span-2 border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white h-24 resize-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
+
             <input
               type="text"
               placeholder="Latitud"
               value={newEstacion.lat}
               onChange={(e) => setNewEstacion({ ...newEstacion, lat: e.target.value })}
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
+              className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
             <input
               type="text"
               placeholder="Longitud"
               value={newEstacion.lng}
               onChange={(e) => setNewEstacion({ ...newEstacion, lng: e.target.value })}
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
+              className="border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
+
             <select
               value={newEstacion.id_tipo_estacion}
               onChange={(e) =>
@@ -152,7 +157,7 @@ const Estacion: React.FC = () => {
                   id_tipo_estacion: Number(e.target.value),
                 })
               }
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500"
+              className="col-span-2 border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="">Seleccione un tipo de estación</option>
               {tiposEstacion.map((tipo) => (
@@ -171,27 +176,27 @@ const Estacion: React.FC = () => {
                   imagen: e.target.files?.[0] || null,
                 })
               }
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+              className="col-span-2 border border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-900 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-green-100 file:text-green-700 hover:file:bg-green-200 dark:file:bg-green-900 dark:file:text-green-300 dark:hover:file:bg-green-800 transition"
             />
-
-            {uploadProgress > 0 && (
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
-                <div
-                  className="bg-green-600 h-4 rounded-full text-xs text-white text-center"
-                  style={{ width: `${uploadProgress}%` }}
-                >
-                  {uploadProgress}%
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={handleCreate}
-              className="w-full bg-green-600 text-white py-3 rounded-full hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
-            >
-              Crear Estación
-            </button>
           </div>
+
+          {uploadProgress > 0 && (
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-green-400 to-green-600 h-3 text-xs text-white text-center transition-all duration-500 ease-in-out"
+                style={{ width: `${uploadProgress}%` }}
+              >
+                {uploadProgress}%
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={handleCreate}
+            className="w-full bg-green-600 text-white py-3 font-semibold rounded-xl hover:bg-green-700 hover:shadow-md focus:ring-2 focus:ring-green-400 focus:outline-none transition-all duration-300 dark:bg-green-500 dark:hover:bg-green-600"
+          >
+            Crear Estación
+          </button>
         </div>
       </Modal>
     </>
