@@ -165,6 +165,7 @@ export default function RainfallChart({ estacion }: Props) {
       ) : (
         <div className="max-w-full overflow-x-auto custom-scrollbar">
           <div className="min-w-[700px] md:min-w-[900px] xl:min-w-full h-[320px]">
+            {/* @ts-ignore */}
             <Line data={data} options={options} />
           </div>
         </div>
