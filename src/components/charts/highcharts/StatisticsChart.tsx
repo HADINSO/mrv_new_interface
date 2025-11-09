@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
-import Chart from "react-apexcharts";
-import { ApexOptions } from "apexcharts";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
 import { FaCloudRain } from "react-icons/fa";
 import ApiHelsy from "../../../service/ApiHelsy";
+
+ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend);
 
 type ApiDato = {
   lectura: string;
@@ -47,116 +57,101 @@ export default function RainfallChart({ estacion }: Props) {
   }, [estacion]);
 
   const categories = datosLluvia.map((d) => d.hora);
-  const data = datosLluvia.map((d) => parseFloat(d.dato || "0") / 10);
+  const dataValues = datosLluvia.map((d) => parseFloat(d.dato || "0") / 10);
 
-  const options: ApexOptions = {
-    legend: {
-      show: true,
-      position: "top",
-      horizontalAlign: "right",
-      labels: {
-        colors: "#1E3A8A",
+  // --- Tema dinámico ---
+  const isDarkMode =
+    typeof document !== "undefined" &&
+    (document.documentElement.classList.contains("dark") ||
+      document.body.classList.contains("dark"));
+
+  const primaryColor = isDarkMode ? "#34D399" : "#16A34A";
+  const secondaryColor = isDarkMode ? "#059669" : "#4ADE80";
+  const labelColor = isDarkMode ? "#D1D5DB" : "#14532D";
+  const gridColor = isDarkMode ? "#374151" : "#DCFCE7";
+
+  // --- Configuración Chart.js ---
+  const data = {
+    labels: categories,
+    datasets: [
+      {
+        label: "Lluvia últimas 24h (mm)",
+        data: dataValues,
+        borderColor: primaryColor,
+        backgroundColor: secondaryColor + "33", // 20% transparencia
+        pointBackgroundColor: primaryColor,
+        pointBorderColor: "#fff",
+        tension: 0.4, // suaviza la curva
+        borderWidth: 3,
+        fill: true,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: "top" as const,
+        labels: {
+          color: labelColor,
+          font: {
+            size: 13,
+            weight: "600",
+          },
+        },
+      },
+      tooltip: {
+        backgroundColor: isDarkMode ? "#064E3B" : "#ECFDF5",
+        titleColor: isDarkMode ? "#A7F3D0" : "#064E3B",
+        bodyColor: isDarkMode ? "#D1FAE5" : "#065F46",
+        borderColor: secondaryColor,
+        borderWidth: 1,
+        cornerRadius: 8,
+        padding: 10,
       },
     },
-    colors: ["#1D4ED8"],
-    chart: {
-      height: 320,
-      type: "area",
-      toolbar: { show: false },
-      background: "transparent",
-    },
-    stroke: {
-      curve: "straight",
-      width: 4,
-    },
-    fill: {
-      type: "gradient",
-      gradient: {
-        shade: "dark",
-        type: "vertical",
-        shadeIntensity: 0.7,
-        gradientToColors: ["#60A5FA"],
-        opacityFrom: 0.7,
-        opacityTo: 0.05,
-        stops: [0, 100],
-      },
-    },
-    markers: {
-      size: 6,
-      colors: ["#3B82F6"],
-      strokeColors: "#fff",
-      strokeWidth: 2,
-      hover: {
-        size: 8,
-      },
-    },
-    grid: {
-      borderColor: "#E0F2FE",
-      strokeDashArray: 4,
-      yaxis: { lines: { show: true } },
-      xaxis: { lines: { show: false } },
-    },
-    dataLabels: { enabled: false },
-    tooltip: {
-      theme: "dark",
+    scales: {
       x: {
-        formatter: (val: number): string => `Hora: ${val}`,
+        ticks: {
+          color: labelColor,
+          maxRotation: 45,
+          minRotation: 0,
+          font: { size: 11, weight: "500" },
+        },
+        grid: {
+          color: gridColor,
+          drawTicks: false,
+        },
       },
       y: {
-        formatter: (val: number): string => `${val} mm`,
-      },
-    },
-    xaxis: {
-      categories,
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-      labels: {
-        style: {
-          colors: "#1E3A8A",
-          fontWeight: 600,
-          fontSize: "12px",
+        beginAtZero: true,
+        ticks: {
+          color: labelColor,
+          font: { size: 11, weight: "500" },
+          callback: (value: number) => `${value} mm`,
         },
-        rotate: -45,
-      },
-    },
-    yaxis: {
-      min: 0,
-      forceNiceScale: true,
-      labels: {
-        style: {
-          colors: "#1E3A8A",
-          fontWeight: 600,
-          fontSize: "12px",
-        },
-      },
-      title: {
-        text: "Lluvia (mm)",
-        style: {
-          color: "#2563EB",
-          fontWeight: "700",
-          fontSize: "14px",
+        grid: {
+          color: gridColor,
+          drawTicks: false,
         },
       },
     },
   };
 
-  const series = [
-    {
-      name: "Lluvia últimas 24h",
-      data,
-    },
-  ];
-
+  // --- Renderizado ---
   return (
-    <div className="rounded-3xl border border-blue-300 bg-blue-50/60 px-6 pb-6 pt-6 shadow-lg dark:bg-blue-900/20 dark:border-blue-700">
+    <div className="rounded-3xl border border-green-300 bg-green-50/60 px-6 pb-6 pt-6 shadow-xl dark:bg-gray-900/50 dark:border-green-700 transition-all duration-300">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <FaCloudRain className="text-blue-600 text-3xl animate-pulse" />
+          <FaCloudRain className="text-green-600 dark:text-green-400 text-3xl animate-pulse" />
           <div>
-            <h3 className="text-2xl font-extrabold text-blue-800 dark:text-blue-300">
+            <h3 className="text-2xl font-extrabold text-gray-800 dark:text-green-300">
               Lluvia últimas 24 horas
             </h3>
-            <p className="text-blue-700 dark:text-blue-400 text-sm font-medium">
+            <p className="text-gray-600 dark:text-green-400 text-sm font-medium">
               Acumulado de lluvia registrado por minuto
             </p>
           </div>
@@ -164,16 +159,18 @@ export default function RainfallChart({ estacion }: Props) {
       </div>
 
       {loading ? (
-        <p className="text-center text-blue-600">Cargando datos de lluvia...</p>
+        <p className="text-center text-green-600 dark:text-green-400 py-10 font-semibold">
+          Cargando datos de lluvia...
+        </p>
       ) : (
         <div className="max-w-full overflow-x-auto custom-scrollbar">
-          <div className="min-w-[900px] xl:min-w-full">
-            <Chart options={options} series={series} type="area" height={320} />
+          <div className="min-w-[700px] md:min-w-[900px] xl:min-w-full h-[320px]">
+            <Line data={data} options={options} />
           </div>
         </div>
       )}
 
-      <p className="mt-4 text-center text-blue-600 dark:text-blue-400 text-xs font-light italic">
+      <p className="mt-4 text-center text-gray-500 dark:text-green-500 text-xs font-light italic">
         Datos en tiempo casi real desde estaciones meteorológicas.
       </p>
     </div>
