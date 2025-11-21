@@ -80,14 +80,23 @@ const Detalles: React.FC = () => {
     }, [codigo, id]);
 
     // Generación del prompt
+    // Generación del prompt mejorado
     const generarPrompt = (datos: Lectura[]) => {
         const valoresPorFecha: Record<string, string[]> = {};
 
         datos.forEach((lectura) => {
             const fecha = lectura.fecha;
+
+            // Nombre de la variable desde el mapa
             const variableNombre =
-                VARIABLES_MAP[lectura.codigo || ""] || lectura.codigo || "Desconocida";
-            const texto = `${variableNombre}: ${lectura.lectura}`;
+                VARIABLES_MAP[lectura.codigo || ""] ||
+                lectura.codigo ||
+                "Desconocida";
+
+            // Limpieza del valor: eliminar sufijos tipo "V", "V1", "V2", etc.
+            const valorLimpio = lectura.lectura.replace(/V\d*$/i, "").trim();
+
+            const texto = `${variableNombre}: ${valorLimpio}-`;
 
             if (!valoresPorFecha[fecha]) {
                 valoresPorFecha[fecha] = [];
@@ -95,26 +104,38 @@ const Detalles: React.FC = () => {
             valoresPorFecha[fecha].push(texto);
         });
 
-        let textoFinal = `Descripción general del dataset:\n\n
-- Número total de registros (observaciones)\n
-- Número total de columnas\n
-- Tipo de cada variable: cuantitativa (continua o discreta), cualitativa (nominal u ordinal)\n
-- Conteo de valores faltantes por variable\n
-- Medidas de tendencia central: media, mediana, moda\n
-- Medidas de dispersión: rango, varianza, desviación estándar, coeficiente de variación, rango intercuartílico (IQR)\n
-- Medidas de forma: asimetría (skewness), curtosis (kurtosis)\n
-- Tablas de frecuencia: absoluta, relativa, acumulada\n
-- Visualizaciones sugeridas: histogramas, boxplots, gráficos de barras/pastel, diagramas de dispersión\n
-- Identificación de valores atípicos (boxplots, regla de 1.5 × IQR)\n
-- Análisis de correlación (Pearson/Spearman según el caso)\n\n`;
+        // Prompt final optimizado
+        let textoFinal = `
+            Realiza un análisis estadístico completo del dataset. 
+            La respuesta debe ser exclusivamente en HTML, usando estructura clara (div, table, ul, etc.).
 
+            Instrucciones estrictas:
+            - Limpia todos los valores numéricos eliminando sufijos como "V", "V1", "V2". El valor final debe verse como "35.5-".
+            - No menciones en ningún momento que existían sufijos.
+            - Presenta los resultados en secciones HTML bien organizadas para crear tablas.
+            - Incluye los siguientes análisis:
+            • Resumen general del dataset
+            • tabla: Total de registros
+            • tabla: Total de columnas
+            • tabla: Tipos de variables
+            • tabla: Valores faltantes
+            • tabla: Medidas de tendencia central (media, mediana, moda)
+            • tabla: Medidas de dispersión (rango, varianza, desviación estándar, coeficiente de variación, IQR)
+            • tabla: Medidas de forma (asimetría y curtosis)
+            • tabla: Tablas de frecuencia
+            • tabla: Correlaciones (Pearson o Spearman según corresponda)
+
+            Datos procesados:
+            `;
+
+        // Agregar datos por fecha
         Object.entries(valoresPorFecha).forEach(([fecha, valores]) => {
-            textoFinal += `Fecha: ${fecha}\n`;
-            textoFinal += valores.join("\n") + "\n\n";
+            textoFinal += `\nFecha: ${fecha}\n${valores.join("\n")}\n`;
         });
 
         setPrompt(textoFinal.trim());
     };
+
 
     return (
         <div className="p-6 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700">

@@ -11,6 +11,7 @@ import {
   FaWind,
   FaInfoCircle,
   FaTrashAlt,
+  FaEdit,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { Modal } from "../../components/ui/modal";
@@ -50,30 +51,42 @@ export const EstacionManager: React.FC = () => {
   const [estaciones, setEstaciones] = useState<Estacion[]>([]);
   const [selectedEstacion, setSelectedEstacion] = useState<Estacion | null>(null);
 
+  // Modal de edición mejorado
+  const [estacionAEditar, setEstacionAEditar] = useState<Estacion | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
   const {
     isOpen: isOpenSensors,
     openModal: openSensorModal,
     closeModal: closeSensorModal,
   } = useModal();
 
+  // ============================
+  // Cargar estaciones
+  // ============================
   useEffect(() => {
     const fetchEstaciones = async () => {
       try {
         const response = await ApiRest.get("estaciones");
         setEstaciones(response.data.data);
       } catch (error) {
-        console.error("Error al cargar estaciones:", error);
+        console.error("Error cargando estaciones:", error);
       }
     };
+
     fetchEstaciones();
     const intervalId = setInterval(fetchEstaciones, 10000);
     return () => clearInterval(intervalId);
   }, []);
 
+  // ============================
+  // Cargar sensores según estación seleccionada
+  // ============================
   useEffect(() => {
     const fetchSensors = async () => {
       if (!selectedEstacion?.id) return;
       setLoading(true);
+
       try {
         const response = await ApiRest.get("sensor-estacion", {
           params: { id: selectedEstacion.id },
@@ -85,12 +98,115 @@ export const EstacionManager: React.FC = () => {
         setLoading(false);
       }
     };
+
     fetchSensors();
   }, [selectedEstacion]);
 
   const getIcon = (tipoId: number): JSX.Element =>
     tipoEstacion[tipoId]?.icono || <FaMapMarkerAlt className="text-gray-500 text-2xl" />;
 
+const handleGuardarCambios = async () => {
+    if (!estacionAEditar) return;
+    // Aquí puedes obtener los nuevos valores desde los inputs
+}
+
+  // ============================
+  // Modal de edición REAL
+  // ============================
+const EditarEstacionModal = () => {
+  if (!estacionAEditar) return null;
+
+  return (
+    <Modal
+      isOpen={isEditOpen}
+      onClose={() => setIsEditOpen(false)}
+      className="max-w-[55%] md:max-w-[50%] lg:max-w-[45%] p-10 rounded-2xl"
+    >
+      <h2 className="text-2xl font-bold mb-6 text-center text-green-700">
+        Editar estación
+      </h2>
+
+      {/* Información actual */}
+      <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-6">
+        <p className="text-sm text-gray-700">
+          <strong>ID:</strong> {estacionAEditar.id}
+        </p>
+        <p className="text-sm text-gray-700 mt-2">
+          <strong>Nombre:</strong> {estacionAEditar.nombre}
+        </p>
+        <p className="text-sm text-gray-700 mt-2">
+          <strong>Descripción:</strong> {estacionAEditar.descripcion}
+        </p>
+      </div>
+
+      {/* Tu formulario de edición */}
+      <div className="space-y-4">
+        {/* Campo nombre */}
+        <div>
+          <label className="text-gray-800 font-medium">Nombre</label>
+          <input
+            type="text"
+            defaultValue={estacionAEditar.nombre}
+            className="w-full border border-gray-300 rounded-lg p-3 mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        {/* Campo descripción */}
+        <div>
+          <label className="text-gray-800 font-medium">Descripción</label>
+          <textarea
+            defaultValue={estacionAEditar.descripcion}
+            className="w-full border border-gray-300 rounded-lg p-3 mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
+            rows={3}
+          />
+        </div>
+
+        {/* Botones */}
+        <div className="flex justify-between mt-6">
+          <button
+            onClick={() => setIsEditOpen(false)}
+            className="px-5 py-3 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold"
+          >
+            Cancelar
+          </button>
+
+          <button
+            onClick={handleGuardarCambios}
+            className="px-6 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md"
+          >
+            Guardar cambios
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+
+  // ============================
+  // Acción editar
+  // ============================
+  const handleEditEstacion = (id: number) => {
+    const estacion = estaciones.find((e) => e.id === id);
+    if (!estacion) return;
+
+    Swal.fire({
+      title: "Cargando...",
+      text: "Abriendo editor de estación...",
+      icon: "info",
+      showConfirmButton: false,
+      timer: 900,
+      timerProgressBar: true,
+      didOpen: () => Swal.showLoading(),
+    }).then(() => {
+      setEstacionAEditar(estacion);
+      setIsEditOpen(true);
+    });
+  };
+
+  // ============================
+  // Eliminar Sensor
+  // ============================
   const handleDeleteSensor = async (id: number) => {
     const confirmDelete = window.confirm(
       "¿Desvincular sensor?\n\nEsta acción no eliminará el sensor, solo lo desvinculará."
@@ -110,7 +226,9 @@ export const EstacionManager: React.FC = () => {
     }
   };
 
-
+  // ============================
+  // Eliminar estación
+  // ============================
   const handleDeleteEstacion = async (id: number) => {
     const confirmDelete = window.confirm(
       "¿Eliminar estación?\n\nEsta acción eliminará la estación permanentemente."
@@ -126,21 +244,25 @@ export const EstacionManager: React.FC = () => {
     }
   };
 
-
   const handleOpenSensorModal = (estacion: Estacion) => {
     setSelectedEstacion(estacion);
     openSensorModal();
   };
 
+  // ===================================================
+  // RENDER
+  // ===================================================
   return (
     <>
-      {/* === Tarjetas de estaciones === */}
+      {/* === Tarjetas de Estaciones === */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {estaciones.map((estacion) => (
           <div
             key={estacion.id}
             onClick={() => handleOpenSensorModal(estacion)}
-            className="group relative border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 bg-white dark:bg-gray-800 p-6 cursor-pointer"
+            className="group relative border border-gray-200 dark:border-gray-700 
+              rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 
+              transition-all duration-200 bg-white dark:bg-gray-800 p-6 cursor-pointer"
           >
             <div className="flex items-center gap-3 mb-3">
               {getIcon(estacion.id_tipo_estacion)}
@@ -148,103 +270,123 @@ export const EstacionManager: React.FC = () => {
                 {estacion.nombre}
               </h3>
             </div>
+
             <p className="text-gray-600 dark:text-gray-300 text-sm mb-2 line-clamp-2">
               {estacion.descripcion}
             </p>
+
             <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
               Lat: {estacion.lat} | Lng: {estacion.lng}
             </p>
-            <div className="flex justify-between items-center">
-              <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300">
-                {tipoEstacion[estacion.id_tipo_estacion]?.nombre || estacion.tipo_estacion}
+
+            <div className="flex items-center justify-between gap-3">
+
+              <span className="px-2 py-1 text-xs font-medium rounded-full 
+                bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300">
+                {tipoEstacion[estacion.id_tipo_estacion]?.nombre ||
+                  estacion.tipo_estacion}
               </span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteEstacion(estacion.id);
-                }}
-                title="Eliminar estación"
-                className="text-red-500 hover:text-red-600 transition-transform transform hover:scale-110"
-              >
-                <FaTrash />
-              </button>
+
+              <div className="flex items-center gap-2">
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditEstacion(estacion.id);
+                  }}
+                  title="Editar estación"
+                  className="text-blue-500 hover:text-blue-600 transition-transform hover:scale-110"
+                >
+                  <FaEdit size={16} />
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteEstacion(estacion.id);
+                  }}
+                  title="Eliminar estación"
+                  className="text-red-500 hover:text-red-600 transition-transform hover:scale-110"
+                >
+                  <FaTrash size={16} />
+                </button>
+
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* === Modal de Sensores === */}
+      {/* === Modal Sensores === */}
       <Modal
         isOpen={isOpenSensors}
         onClose={closeSensorModal}
-        // MODAL: Mayor padding, sombra más definida (shadow-2xl), esquinas más suaves (rounded-3xl).
-        // La clase 'z-50' puede ser necesaria si el Modal no la maneja internamente.
-        className="max-w-6xl p-10 rounded-3xl bg-white dark:bg-gray-950 shadow-2xl border border-gray-100 dark:border-gray-800 transition-all duration-300"
+        className="max-w-6xl p-10 rounded-3xl bg-white dark:bg-gray-950 
+        shadow-2xl border border-gray-100 dark:border-gray-800"
       >
         {selectedEstacion && (
           <>
-            {/* HEADER: Título más impactante y jerarquía clara */}
+            {/* HEADER */}
             <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-3xl font-extrabold text-green-600 dark:text-green-400 flex items-center gap-3">
-                {/* Ícono de FaTools con un color más vibrante */}
                 <FaTools className="text-4xl text-green-500 dark:text-green-400" />
                 Administrar Sensores
               </h2>
             </div>
 
-            {/* INFORMACIÓN DE LA ESTACIÓN: Diseño de "tarjeta" más prominente (UX: contexto claro) */}
+            {/* Información */}
             <div className="bg-green-50 dark:bg-gray-800/70 p-5 rounded-2xl border border-green-200 dark:border-gray-700 mb-8 shadow-inner">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">
                 Detalles de la Estación
               </h3>
               <p className="text-gray-700 dark:text-gray-300 text-base mb-1">
-                <strong className="font-bold text-gray-900 dark:text-gray-50">Estación:</strong> {selectedEstacion.nombre}
+                <strong>Estación:</strong> {selectedEstacion.nombre}
               </p>
               <p className="text-gray-600 dark:text-gray-400 text-sm">
-                <strong className="font-bold text-gray-900 dark:text-gray-50">Descripción:</strong> {selectedEstacion.descripcion}
+                <strong>Descripción:</strong> {selectedEstacion.descripcion}
               </p>
             </div>
 
-            {/* BOTONES DE ACCIÓN: Mejor espaciado y botones con estilos más modernos */}
+            {/* Botones */}
             <div className="flex justify-end items-center mb-8 gap-4">
-              {/* Botón Ver Estación: Estilo de botón secundario (outline) para no competir con "Agregar" */}
               <Link
                 to={`/monitoring/${selectedEstacion.id}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-green-600 dark:text-green-400 border border-green-600 dark:border-green-400 hover:bg-green-50 dark:hover:bg-gray-800 transition font-medium shadow-sm"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-green-600 
+                border border-green-600 hover:bg-green-50 dark:text-green-400 
+                dark:border-green-400 dark:hover:bg-gray-800 transition shadow-sm"
               >
                 <FaEye /> Ver Monitoreo
               </Link>
-              {/* Agregar Sensor: Botón primario, más prominente, con un estilo más "elevado" */}
+
               <AgregarSensorButton
                 estacionId={selectedEstacion.id}
                 onSensorAdded={(sensor: Sensor) =>
                   setSensores((prev) => [...prev, sensor])
                 }
-                // Ajusta el componente AgregarSensorButton para aceptar estas clases
-                className="bg-green-600 text-white px-5 py-2.5 rounded-xl hover:bg-green-700 transition font-semibold shadow-md hover:shadow-lg dark:bg-green-500 dark:hover:bg-green-600"
+                className="bg-green-600 text-white px-5 py-2.5 rounded-xl hover:bg-green-700 shadow-md"
               />
             </div>
 
-            {/* LISTA DE SENSORES */}
+            {/* Lista de sensores */}
             {loading ? (
               <div className="flex justify-center py-16">
                 <LoaderCirculo />
-                <p className="ml-3 text-gray-500 dark:text-gray-400">Cargando sensores...</p>
+                <p className="ml-3 text-gray-500 dark:text-gray-400">
+                  Cargando sensores...
+                </p>
               </div>
             ) : sensores.length > 0 ? (
-              // TABLA: Más énfasis en las esquinas redondeadas y sombra sutil
               <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  {/* ENCABEZADOS: Fondo más sobrio y contraste en texto */}
                   <thead className="bg-gray-100 dark:bg-gray-700">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">ID</th>
                       <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Nombre</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Tipo de Sensor</th> {/* Nomenclatura más clara */}
+                      <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Tipo de Sensor</th>
                       <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Acciones</th>
                     </tr>
                   </thead>
-                  {/* CUERPO DE LA TABLA: Mejor hover y separación visual */}
+
                   <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
                     {sensores.map((sensor) => (
                       <tr
@@ -254,13 +396,11 @@ export const EstacionManager: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{sensor.id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">{sensor.nombre}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {/* Podrías añadir un Badge (etiqueta) para el tipo de sensor para mejor UX */}
                           <span className="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300">
                             {sensor.tipo_sensor}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {/* Botón de Desvincular con ícono y mejor hover */}
                           <button
                             onClick={() => handleDeleteSensor(sensor.id)}
                             className="inline-flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition shadow-sm hover:shadow-md"
@@ -275,20 +415,19 @@ export const EstacionManager: React.FC = () => {
                 </table>
               </div>
             ) : (
-              /* ESTADO VACÍO: Más informativo y con un ícono */
               <div className="text-center bg-gray-50 dark:bg-gray-800/70 p-12 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 my-8">
                 <FaInfoCircle className="mx-auto h-8 w-8 text-gray-400 dark:text-gray-500 mb-3" />
                 <p className="text-lg font-medium text-gray-600 dark:text-gray-300">
                   Aún no hay sensores asociados a esta estación.
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Utiliza el botón **"Agregar Sensor"** para vincular uno nuevo.
                 </p>
               </div>
             )}
           </>
         )}
       </Modal>
+
+      {/* === Modal Edición Estación === */}
+      <EditarEstacionModal />
     </>
   );
 };

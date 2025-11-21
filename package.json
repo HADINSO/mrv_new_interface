@@ -10,12 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@editorjs/editorjs": "^2.31.0",
     "@fullcalendar/core": "^6.1.15",
     "@fullcalendar/daygrid": "^6.1.15",
     "@fullcalendar/interaction": "^6.1.15",
     "@fullcalendar/list": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
     "@fullcalendar/timegrid": "^6.1.15",
+    "@lexical/react": "^0.38.2",
     "@react-google-maps/api": "^2.20.6",
     "@react-jvectormap/core": "^1.0.4",
     "@react-jvectormap/world": "^1.1.2",
@@ -31,6 +33,7 @@
     "framer-motion": "^12.23.24",
     "highcharts": "^12.2.0",
     "highcharts-react-official": "^3.2.2",
+    "lexical": "^0.38.2",
     "lucide-react": "^0.511.0",
     "react": "^19.0.0",
     "react-apexcharts": "^1.7.0",

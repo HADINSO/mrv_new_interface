@@ -76,7 +76,6 @@ export default function PricingClimate() {
       `}
     >
       <div className="max-w-7xl mx-auto">
-        {/* Toggle dark mode */}
 
         <h1 className="text-5xl font-extrabold text-center mb-14 drop-shadow-lg">
           Tabla de precios – Suscripción de datos climáticos
@@ -94,14 +93,15 @@ export default function PricingClimate() {
                   backdrop-blur-md shadow-lg p-8 transition-transform duration-300 hover:scale-[1.06] hover:shadow-2xl cursor-pointer
                 `}
               >
-                {/* Icono con fondo degradado y círculo */}
+
+                {/* Icono */}
                 <div
                   className={`w-20 h-20 mb-6 rounded-full flex items-center justify-center bg-gradient-to-tr ${gradient} shadow-lg`}
                 >
                   {plan.icon}
                 </div>
 
-                {/* Nombre y target */}
+                {/* Nombre */}
                 <h2
                   className={`text-3xl font-extrabold mb-1 drop-shadow-md ${
                     theme === "dark" ? "text-white" : "text-white"
@@ -134,7 +134,6 @@ export default function PricingClimate() {
                   </p>
                   <p className="text-white/80 text-sm mb-6">Anual: {plan.annual}</p>
 
-                  {/* Botón CTA */}
                   <button
                     type="button"
                     className="w-full bg-yellow-400 dark:bg-yellow-500 text-blue-900 dark:text-gray-900 font-bold py-3 rounded-xl shadow-md hover:bg-yellow-300 dark:hover:bg-yellow-600 transition-colors"
@@ -154,10 +153,7 @@ export default function PricingClimate() {
           }`}
         >
           <h2 className="text-4xl font-semibold mb-6 flex items-center gap-3 drop-shadow-md">
-            <span role="img" aria-label="pin">
-              📌
-            </span>
-            Factores que justifican cobrar más
+            📌 Factores que justifican cobrar más
           </h2>
           <ul className="space-y-4 list-disc pl-6 text-lg leading-relaxed">
             {factors.map((f, i) => (
@@ -169,10 +165,7 @@ export default function PricingClimate() {
         {/* Ejemplo práctico */}
         <section className="mt-14 max-w-3xl mx-auto">
           <h2 className="text-4xl font-semibold mb-5 flex items-center gap-3 drop-shadow-md">
-            <span role="img" aria-label="calculator">
-              🧮
-            </span>
-            Ejemplo práctico
+            🧮 Ejemplo práctico
           </h2>
           <ul className="space-y-2 pl-6 list-disc text-lg text-white/90 mb-4">
             {example.map((e, i) => (
@@ -190,14 +183,12 @@ export default function PricingClimate() {
             ${theme === "dark" ? "bg-gray-900/70 text-white/90" : "bg-white/10 text-white/90"}`}
         >
           <h2 className="text-4xl font-semibold mb-6 flex items-center gap-3">
-            <span role="img" aria-label="invoice">
-              🧾
-            </span>
-            Propuesta comercial
+            🧾 Propuesta comercial
           </h2>
           <p className="mb-4 text-lg leading-relaxed">
             Ofrecemos acceso confiable a datos climáticos históricos y en tiempo real, con distintas soluciones según tus necesidades:
           </p>
+
           <ul className="list-disc pl-8 space-y-2 text-lg">
             <li>
               <strong>Plan Básico:</strong> ideal para usuarios individuales o técnicos de campo. Incluye datos meteorológicos diarios.
@@ -209,6 +200,7 @@ export default function PricingClimate() {
               <strong>Plan Institucional:</strong> dirigido a gobiernos y empresas. Incluye API, reportes automáticos y soporte especializado.
             </li>
           </ul>
+
           <p className="mt-4 text-lg">
             También desarrollamos planes personalizados para organizaciones que requieran métricas específicas para reportes de carbono, ESG o proyectos con financiamiento climático.
           </p>
