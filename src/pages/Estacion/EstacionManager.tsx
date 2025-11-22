@@ -21,6 +21,8 @@ import { AgregarSensorButton } from "./AgregarSensorButton";
 import Swal from "sweetalert2";
 import LoaderCirculo from "../../components/Loader/LoaderCirculo";
 import { Link } from "react-router";
+import { LoaderTailwind } from "../../components/Loader/LoaderTailwind";
+import ApiHelsy from "../../service/ApiHelsy";
 
 interface Estacion {
   id: number;
@@ -38,18 +40,36 @@ interface Sensor {
   tipo_sensor: string;
 }
 
-const tipoEstacion: Record<number, { nombre: string; icono: React.ReactNode }> = {
-  1: { nombre: "Hidrológico", icono: <FaWater className="text-blue-500 text-2xl" /> },
-  2: { nombre: "Meteorológico", icono: <FaCloudSunRain className="text-cyan-500 text-2xl" /> },
-  3: { nombre: "Calidad del Aire", icono: <FaWind className="text-green-500 text-2xl" /> },
-  4: { nombre: "Otros", icono: <FaRadiation className="text-yellow-500 text-2xl" /> },
-};
+const tipoEstacion: Record<number, { nombre: string; icono: React.ReactNode }> =
+  {
+    1: {
+      nombre: "Hidrológico",
+      icono: <FaWater className="text-blue-500 text-2xl" />,
+    },
+    2: {
+      nombre: "Meteorológico",
+      icono: <FaCloudSunRain className="text-cyan-500 text-2xl" />,
+    },
+    3: {
+      nombre: "Calidad del Aire",
+      icono: <FaWind className="text-green-500 text-2xl" />,
+    },
+    4: {
+      nombre: "Otros",
+      icono: <FaRadiation className="text-yellow-500 text-2xl" />,
+    },
+  };
 
 export const EstacionManager: React.FC = () => {
   const [sensores, setSensores] = useState<Sensor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loading2, setLoading2] = useState(false);
+  const [mensaje, setMensaje] = useState<string>("");
+  const [error, setError] = useState<string>("");
   const [estaciones, setEstaciones] = useState<Estacion[]>([]);
-  const [selectedEstacion, setSelectedEstacion] = useState<Estacion | null>(null);
+  const [selectedEstacion, setSelectedEstacion] = useState<Estacion | null>(
+    null
+  );
 
   // Modal de edición mejorado
   const [estacionAEditar, setEstacionAEditar] = useState<Estacion | null>(null);
@@ -103,85 +123,151 @@ export const EstacionManager: React.FC = () => {
   }, [selectedEstacion]);
 
   const getIcon = (tipoId: number): JSX.Element =>
-    tipoEstacion[tipoId]?.icono || <FaMapMarkerAlt className="text-gray-500 text-2xl" />;
+    tipoEstacion[tipoId]?.icono || (
+      <FaMapMarkerAlt className="text-gray-500 text-2xl" />
+    );
 
-const handleGuardarCambios = async () => {
+  // Función para guardar cambios
+  const handleGuardarCambios = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+
     if (!estacionAEditar) return;
-    // Aquí puedes obtener los nuevos valores desde los inputs
-}
+
+    const form = event.currentTarget;
+
+    const nombre = form.nombre.value;
+    const descripcion = form.descripcion.value;
+
+    const datosActualizados = {
+      id: estacionAEditar.id,
+      nombre,
+      descripcion,
+    };
+
+    setLoading2(true);
+    try {
+      const response = await ApiRest.post(
+        "estaciones/update",
+        datosActualizados
+      );
+
+      if (response.data.success) {
+        toast.success("Estación actualizada correctamente");
+        setError("");
+        setMensaje("Estación actualizada correctamente");
+        setIsEditOpen(false);
+        fetchEstaciones();
+        setLoading2(false);
+      } else {
+        toast.error("Error al actualizar la estación");
+        setError("Error al actualizar la estación");
+        setLoading2(false);
+      }
+    } catch {
+      toast.error("Error al actualizar la estación");
+      setError("Error al actualizar la estación");
+      setLoading2(false);
+    } finally {
+      setLoading2(false);
+    }
+  };
 
   // ============================
   // Modal de edición REAL
   // ============================
-const EditarEstacionModal = () => {
-  if (!estacionAEditar) return null;
+  const EditarEstacionModal = () => {
+    if (!estacionAEditar) return null;
 
-  return (
-    <Modal
-      isOpen={isEditOpen}
-      onClose={() => setIsEditOpen(false)}
-      className="max-w-[55%] md:max-w-[50%] lg:max-w-[45%] p-10 rounded-2xl"
-    >
-      <h2 className="text-2xl font-bold mb-6 text-center text-green-700">
-        Editar estación
-      </h2>
+    return (
+      <Modal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        className="max-w-[55%] md:max-w-[50%] lg:max-w-[45%] p-10 rounded-2xl"
+      >
+        <form onSubmit={handleGuardarCambios}>
+          <h2 className="text-2xl font-bold mb-6 text-center text-green-700">
+            Editar estación
+          </h2>
 
-      {/* Información actual */}
-      <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-6">
-        <p className="text-sm text-gray-700">
-          <strong>ID:</strong> {estacionAEditar.id}
-        </p>
-        <p className="text-sm text-gray-700 mt-2">
-          <strong>Nombre:</strong> {estacionAEditar.nombre}
-        </p>
-        <p className="text-sm text-gray-700 mt-2">
-          <strong>Descripción:</strong> {estacionAEditar.descripcion}
-        </p>
-      </div>
+          {loading2 ? (
+            <LoaderTailwind />
+          ) : (
+            <>
+              {/* Información actual */}
+              <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-6">
+                <p className="text-sm text-gray-700">
+                  <strong>ID:</strong> {estacionAEditar?.id}
+                </p>
+                <p className="text-sm text-gray-700 mt-2">
+                  <strong>Nombre:</strong> {estacionAEditar?.nombre}
+                </p>
+                <p className="text-sm text-gray-700 mt-2">
+                  <strong>Descripción:</strong> {estacionAEditar?.descripcion}
+                </p>
+              </div>
 
-      {/* Tu formulario de edición */}
-      <div className="space-y-4">
-        {/* Campo nombre */}
-        <div>
-          <label className="text-gray-800 font-medium">Nombre</label>
-          <input
-            type="text"
-            defaultValue={estacionAEditar.nombre}
-            className="w-full border border-gray-300 rounded-lg p-3 mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-        </div>
+              {error ? (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-5 mb-6">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              ) : null}
+              {mensaje ? (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-5 mb-6">
+                  <p className="text-sm text-green-700">{mensaje}</p>
+                </div>
+              ) : null}
 
-        {/* Campo descripción */}
-        <div>
-          <label className="text-gray-800 font-medium">Descripción</label>
-          <textarea
-            defaultValue={estacionAEditar.descripcion}
-            className="w-full border border-gray-300 rounded-lg p-3 mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"
-            rows={3}
-          />
-        </div>
+              {/* Campo nombre */}
+              <div>
+                <label className="text-gray-800 font-medium">Nombre</label>
+                <input
+                  type="text"
+                  name="nombre"
+                  defaultValue={estacionAEditar?.nombre}
+                  className="w-full border border-gray-300 rounded-lg p-3 mt-1
+          focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
 
-        {/* Botones */}
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={() => setIsEditOpen(false)}
-            className="px-5 py-3 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold"
-          >
-            Cancelar
-          </button>
+              {/* Campo descripción */}
+              <div>
+                <label className="text-gray-800 font-medium">Descripción</label>
+                <textarea
+                  name="descripcion"
+                  defaultValue={estacionAEditar?.descripcion}
+                  rows={3}
+                  className="w-full border border-gray-300 rounded-lg p-3 mt-1
+          focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
 
-          <button
-            onClick={handleGuardarCambios}
-            className="px-6 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md"
-          >
-            Guardar cambios
-          </button>
-        </div>
-      </div>
-    </Modal>
-  );
-};
+              {/* Botones */}
+              <div className="flex justify-between mt-6">
+                <button
+                  type="button"
+                  onClick={() => setIsEditOpen(false)}
+                  className="px-5 py-3 rounded-lg bg-gray-300 hover:bg-gray-400 
+          text-gray-700 font-semibold"
+                >
+                  Cancelar
+                </button>
 
+                <button
+                  type="submit"
+                  className="px-6 py-3 rounded-lg bg-green-600 hover:bg-green-700 
+          text-white font-semibold shadow-md"
+                >
+                  Guardar cambios
+                </button>
+              </div>
+            </>
+          )}
+        </form>
+      </Modal>
+    );
+  };
 
   // ============================
   // Acción editar
@@ -280,15 +366,15 @@ const EditarEstacionModal = () => {
             </p>
 
             <div className="flex items-center justify-between gap-3">
-
-              <span className="px-2 py-1 text-xs font-medium rounded-full 
-                bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300">
+              <span
+                className="px-2 py-1 text-xs font-medium rounded-full 
+                bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300"
+              >
                 {tipoEstacion[estacion.id_tipo_estacion]?.nombre ||
                   estacion.tipo_estacion}
               </span>
 
               <div className="flex items-center gap-2">
-
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -310,7 +396,6 @@ const EditarEstacionModal = () => {
                 >
                   <FaTrash size={16} />
                 </button>
-
               </div>
             </div>
           </div>
@@ -380,10 +465,18 @@ const EditarEstacionModal = () => {
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-100 dark:bg-gray-700">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Nombre</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Tipo de Sensor</th>
-                      <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Acciones</th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                        ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                        Nombre
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                        Tipo de Sensor
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                        Acciones
+                      </th>
                     </tr>
                   </thead>
 
@@ -393,8 +486,12 @@ const EditarEstacionModal = () => {
                         key={sensor.id}
                         className="text-gray-800 dark:text-gray-200 hover:bg-green-50/50 dark:hover:bg-gray-800 transition-colors"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{sensor.id}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">{sensor.nombre}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          {sensor.id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {sensor.nombre}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300">
                             {sensor.tipo_sensor}
