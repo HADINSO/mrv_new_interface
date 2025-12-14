@@ -55,7 +55,7 @@ const Estacion: React.FC = () => {
           if (e.total) setUploadProgress(Math.round((e.loaded * 100) / e.total));
         },
       });
-
+      
       if (response.data.success) {
         const newId = estaciones.length > 0 ? estaciones[estaciones.length - 1].id + 1 : 1;
         setEstaciones((prev) => [...prev, { ...newEstacion, id: newId }]);

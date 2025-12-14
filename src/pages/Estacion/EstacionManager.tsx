@@ -322,7 +322,8 @@ export const EstacionManager: React.FC = () => {
     if (!confirmDelete) return;
 
     try {
-      await ApiRest.post("delete/estaciones", { id });
+      const response = await ApiRest.post("delete/estaciones", { id });
+      console.log(response);
       setEstaciones((prev) => prev.filter((e) => e.id !== id));
       toast.success("Estación eliminada correctamente");
     } catch {

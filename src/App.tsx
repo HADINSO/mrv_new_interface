@@ -40,6 +40,7 @@ import BarChart from "./pages/Charts/BarChart";
 import { useAuth } from "./context/AuthContext";
 import Comunas from "./pages/Comunas/Comunas";
 import Precios from "./pages/Precios/Precios";
+import ChangePassword from "./components/auth/ChangePassword";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -57,6 +58,7 @@ export default function App() {
           <Route path="/monitoring/:id" element={<Monitoreo />} />
           <Route path="/monitoring/variables/:id" element={<Variables />} />
           <Route path="/monitoring/variables/detalles/:codigo/:id" element={<Detalles />}/>
+          <Route path="/forgot-password" element={<ChangePassword />}/>
           {/* Privadas (solo si está autenticado) */}
           {isAuthenticated && (
             <>
