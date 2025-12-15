@@ -6,6 +6,9 @@ import EnvironmentalPolarChart from "./EnvironmentalPolarChart";
 import InformeLecturas from "./InformeLecturas";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import Helper from "../../service/Helper";
 
 interface Lectura {
     id: number;
@@ -26,22 +29,27 @@ const VARIABLES_MAP: Record<string, string> = {
     V8: "Humedad Relativa % RH",
     V9: "Presión Barométrica (1 atmósfera = 1.01325 bar.)",
     V10: "Nivel",
-    V12: "Monóxido de carbono / óxido de carbono μg/m³",
+    V12: "Monóxido de carbono μg/m³",
     V13: "Amoníaco NH3 μg/m³",
-    V15: "Dióxido de nitrógeno u óxido de nitrógeno μg/m³",
+    V15: "Dióxido de nitrógeno μg/m³",
     V16: "Óxidos de Nitrógeno (NOx) μg/m³",
 };
 
 const Detalles: React.FC = () => {
     const { codigo, id } = useParams<{ codigo: string; id: string }>();
     const [datos, setDatos] = useState<Lectura[]>([]);
-    const [prompt, setPrompt] = useState<string>("");
+    const [prompt, setPrompt] = useState("");
+
+    const [showModal, setShowModal] = useState(false);
+    const [fechaInicio, setFechaInicio] = useState("");
+    const [fechaFin, setFechaFin] = useState("");
+    const [loadingDownload, setLoadingDownload] = useState(false);
 
     const navigate = useNavigate();
     const location = useLocation();
     const ruta_actual = location.pathname;
     const { isAuthenticated } = useAuth();
-    // Redirección si no está autenticado
+
     useEffect(() => {
         if (!isAuthenticated) {
             const rutaCodificada = encodeURIComponent(ruta_actual);
@@ -49,16 +57,18 @@ const Detalles: React.FC = () => {
         }
     }, [isAuthenticated, navigate, ruta_actual]);
 
-    // Carga de datos
     useEffect(() => {
         if (!codigo || !id) return;
 
         const fetchData = async () => {
             try {
-                const res = await ApiHelsy.get(`PreviewDetailChartsAdvanced/${id}/${codigo}`);
+                const res = await ApiHelsy.get(
+                    `PreviewDetailChartsAdvanced/${id}/${codigo}`
+                );
+
                 const data: unknown = res.data;
 
-                if (Array.isArray(data) && data.length > 0) {
+                if (Array.isArray(data)) {
                     const datosConCodigo: Lectura[] = data.map((item: any) => ({
                         ...item,
                         codigo,
@@ -68,8 +78,8 @@ const Detalles: React.FC = () => {
                 } else {
                     setDatos([]);
                 }
-            } catch (err) {
-                console.error(`Error al obtener datos de ${codigo}`, err);
+            } catch (error) {
+                console.error("Error al cargar datos", error);
                 setDatos([]);
             }
         };
@@ -79,22 +89,19 @@ const Detalles: React.FC = () => {
         return () => clearInterval(interval);
     }, [codigo, id]);
 
-    // Generación del prompt
-    // Generación del prompt mejorado
     const generarPrompt = (datos: Lectura[]) => {
         const valoresPorFecha: Record<string, string[]> = {};
 
         datos.forEach((lectura) => {
             const fecha = lectura.fecha;
-
-            // Nombre de la variable desde el mapa
             const variableNombre =
                 VARIABLES_MAP[lectura.codigo || ""] ||
                 lectura.codigo ||
                 "Desconocida";
 
-            // Limpieza del valor: eliminar sufijos tipo "V", "V1", "V2", etc.
-            const valorLimpio = lectura.lectura.replace(/V\d*$/i, "").trim();
+            const valorLimpio = lectura.lectura
+                .replace(/V\d*$/i, "")
+                .trim();
 
             const texto = `${variableNombre}: ${valorLimpio}-`;
 
@@ -104,31 +111,13 @@ const Detalles: React.FC = () => {
             valoresPorFecha[fecha].push(texto);
         });
 
-        // Prompt final optimizado
         let textoFinal = `
-            Realiza un análisis estadístico completo del dataset. 
-            La respuesta debe ser exclusivamente en HTML, usando estructura clara (div, table, ul, etc.).
-
-            Instrucciones estrictas:
-            - Limpia todos los valores numéricos eliminando sufijos como "V", "V1", "V2". El valor final debe verse como "35.5-".
-            - No menciones en ningún momento que existían sufijos.
-            - Presenta los resultados en secciones HTML bien organizadas para crear tablas.
-            - Incluye los siguientes análisis:
-            • Resumen general del dataset
-            • tabla: Total de registros
-            • tabla: Total de columnas
-            • tabla: Tipos de variables
-            • tabla: Valores faltantes
-            • tabla: Medidas de tendencia central (media, mediana, moda)
-            • tabla: Medidas de dispersión (rango, varianza, desviación estándar, coeficiente de variación, IQR)
-            • tabla: Medidas de forma (asimetría y curtosis)
-            • tabla: Tablas de frecuencia
-            • tabla: Correlaciones (Pearson o Spearman según corresponda)
+            Realiza un análisis estadístico completo del dataset.
+            La respuesta debe ser exclusivamente en HTML.
 
             Datos procesados:
-            `;
+        `;
 
-        // Agregar datos por fecha
         Object.entries(valoresPorFecha).forEach(([fecha, valores]) => {
             textoFinal += `\nFecha: ${fecha}\n${valores.join("\n")}\n`;
         });
@@ -136,22 +125,242 @@ const Detalles: React.FC = () => {
         setPrompt(textoFinal.trim());
     };
 
+    const handleDownloadCSV = async () => {
+        if (!fechaInicio || !fechaFin || !id || !codigo) {
+            alert("Seleccione ambas fechas");
+            return;
+        }
+
+        try {
+            setLoadingDownload(true);
+
+            const url = `${Helper.url}download/variable/${id}/${codigo}/${fechaInicio}/${fechaFin}`;
+
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Error al obtener datos");
+            }
+
+            const data: {
+                id: number;
+                lectura: string;
+                fecha_hora: string;
+            }[] = await response.json();
+
+            /* ================= CSV ================= */
+            let csvContent = "id,fecha,dato\n";
+
+            data.forEach((item) => {
+                const row = [
+                    item.id,
+                    item.fecha_hora,
+                    item.lectura
+                ]
+                    .map(value => `"${value}"`)
+                    .join(",");
+
+                csvContent += row + "\n";
+            });
+
+            /* =============== DOWNLOAD =============== */
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const downloadUrl = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            link.download = `variable_${codigo}_${fechaInicio}_${fechaFin}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            URL.revokeObjectURL(downloadUrl);
+            setShowModal(false);
+        } catch (error) {
+            console.error(error);
+            alert("No se pudo generar el CSV");
+        } finally {
+            setLoadingDownload(false);
+        }
+    };
+
 
     return (
         <div className="p-6 rounded-2xl bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-700">
+            <div className="flex justify-end mb-4">
+                <button
+                    onClick={() => setShowModal(true)}
+                    className="px-4 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700"
+                >
+                    Descargar CSV por fecha
+                </button>
+            </div>
+
             <div className="overflow-x-auto">
                 <div className="grid grid-cols-12 gap-6">
                     <div className="col-span-12 space-y-6 xl:col-span-7">
                         <EnvironmentalChart data={datos} code={codigo || ""} />
                     </div>
                     <div className="col-span-12 xl:col-span-5">
-                        <EnvironmentalPolarChart data={datos} code={codigo || ""} />
+                        <EnvironmentalPolarChart
+                            data={datos}
+                            code={codigo || ""}
+                        />
                     </div>
                     <div className="col-span-12">
                         <InformeLecturas prompt={prompt} />
                     </div>
                 </div>
             </div>
+
+            {showModal && (
+                <div
+                    className="
+      fixed inset-0 z-50 flex items-center justify-center
+      bg-black/70 backdrop-blur-sm transition-opacity
+    "
+                    onClick={() => setShowModal(false)}
+                    role="dialog"
+                    aria-modal="true"
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="
+        w-full max-w-md mx-4
+        bg-white dark:bg-gray-900
+        rounded-2xl shadow-2xl
+        p-8 space-y-8
+        border border-gray-100 dark:border-gray-800
+      "
+                    >
+                        {/* Header */}
+                        <div className="text-center space-y-2">
+                            <div
+                                className="
+            mx-auto w-14 h-14 rounded-full
+            bg-gradient-to-br from-green-500 to-blue-600
+            flex items-center justify-center
+            text-white text-xl font-bold shadow-lg
+          "
+                            >
+                                📊
+                            </div>
+
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                Descargar reporte
+                            </h2>
+
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Selecciona el rango de fechas para generar el CSV
+                            </p>
+                        </div>
+
+                        {/* Calendarios */}
+                        <div className="grid grid-cols-1 gap-6">
+                            {/* Fecha inicio */}
+                            <div>
+                                <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    Fecha de inicio
+                                </label>
+
+                                <DatePicker
+                                    selected={fechaInicio ? new Date(fechaInicio) : null}
+                                      //@ts-ignore
+                                    onChange={(date: Date) =>
+                                        setFechaInicio(date.toISOString().split("T")[0])
+                                    }
+                                    maxDate={fechaFin ? new Date(fechaFin) : undefined}
+                                    placeholderText="Selecciona una fecha"
+                                    className="
+              w-full px-4 py-3 rounded-xl
+              border border-gray-200
+              focus:ring-2 focus:ring-green-500 focus:border-green-500
+              dark:bg-gray-800 dark:border-gray-700 dark:text-white
+              transition shadow-sm
+            "
+                                    calendarClassName="rounded-xl shadow-lg border"
+                                />
+                            </div>
+
+                            {/* Fecha fin */}
+                            <div>
+                                <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    Fecha de fin
+                                </label>
+
+                                <DatePicker
+                                    selected={fechaFin ? new Date(fechaFin) : null}
+                                    //@ts-ignore
+                                    onChange={(date: Date) =>
+                                        setFechaFin(date.toISOString().split("T")[0])
+                                    }
+                                    minDate={fechaInicio ? new Date(fechaInicio) : undefined}
+                                    placeholderText="Selecciona una fecha"
+                                    className="
+              w-full px-4 py-3 rounded-xl
+              border border-gray-200
+              focus:ring-2 focus:ring-green-500 focus:border-green-500
+              dark:bg-gray-800 dark:border-gray-700 dark:text-white
+              transition shadow-sm
+            "
+                                    calendarClassName="rounded-xl shadow-lg border"
+                                />
+                            </div>
+
+                            <p className="text-xs text-center text-gray-400">
+                                El archivo se descargará en formato <span className="font-semibold text-green-600">CSV</span>
+                            </p>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-4 pt-4">
+                            <button
+                                type="button"
+                                onClick={() => setShowModal(false)}
+                                className="
+            flex-1 py-3 rounded-xl font-semibold
+            bg-gray-100 text-gray-700
+            hover:bg-yellow-100 hover:text-yellow-700
+            dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700
+            transition
+          "
+                            >
+                                Cancelar
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleDownloadCSV}
+                                disabled={
+                                    loadingDownload ||
+                                    !fechaInicio ||
+                                    !fechaFin ||
+                                    fechaFin < fechaInicio
+                                }
+                                className={`
+            flex-1 py-3 rounded-xl font-semibold text-white
+            shadow-lg transition-all duration-300
+            ${loadingDownload ||
+                                        !fechaInicio ||
+                                        !fechaFin ||
+                                        fechaFin < fechaInicio
+                                        ? "bg-green-400 opacity-60 cursor-not-allowed"
+                                        : "bg-gradient-to-r from-green-600 via-green-500 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                                    }
+          `}
+                            >
+                                {loadingDownload ? "Descargando..." : "Descargar CSV"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };

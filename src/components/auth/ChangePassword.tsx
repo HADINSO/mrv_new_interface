@@ -26,20 +26,15 @@ const ChangePassword: React.FC = () => {
     setLoading(true);
 
     try {
-
       const searchResponse = await fetch(
-        `${Helper.url}ChangePassword.php?buscarEmail2=${encodeURIComponent(
+        `${Helper.url}Controllers/ChangePassword.php?buscarEmail2=${encodeURIComponent(
           email
         )}`
       );
       const searchData = await searchResponse.json();
 
       if (!searchData.exists) {
-        Swal.fire(
-          "Error",
-          "El email no está registrado",
-          "error"
-        );
+        Swal.fire("Error", "El email no está registrado", "error");
         setLoading(false);
         return;
       }
@@ -63,18 +58,10 @@ const ChangePassword: React.FC = () => {
         );
         setEnviado(true);
       } else {
-        Swal.fire(
-          "Error",
-          "No se pudo procesar la solicitud",
-          "error"
-        );
+        Swal.fire("Error", "No se pudo procesar la solicitud", "error");
       }
     } catch {
-      Swal.fire(
-        "Error",
-        "Error de conexión con el servidor",
-        "error"
-      );
+      Swal.fire("Error", "Error de conexión con el servidor", "error");
     } finally {
       setLoading(false);
     }
@@ -83,36 +70,86 @@ const ChangePassword: React.FC = () => {
   if (enviado) return <ChangePasswordValidation />;
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-6">
-      <h1 className="text-2xl font-semibold">Recuperar cuenta</h1>
+    <div className="flex flex-col justify-center w-full max-w-md mx-auto px-6">
+      <div
+        className="
+          bg-white border border-gray-100 shadow-xl rounded-2xl
+          p-8 space-y-8
+        "
+      >
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div
+            className="
+              mx-auto w-14 h-14 rounded-full
+              bg-gradient-to-br from-green-500 to-blue-600
+              flex items-center justify-center
+              text-white text-xl font-bold shadow-lg
+            "
+          >
+            🔒
+          </div>
 
-      <p className="text-sm text-gray-500">
-        Ingresa tu correo registrado y te enviaremos un código.
-      </p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Recuperar cuenta
+          </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          className="w-full px-4 py-3 border rounded-lg"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+          <p className="text-sm text-gray-500 leading-relaxed">
+            Ingresa tu correo electrónico registrado y te enviaremos un{" "}
+            <span className="font-semibold text-green-600">
+              código de verificación
+            </span>{" "}
+            para restablecer tu contraseña.
+          </p>
+        </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 text-white bg-brand-500 rounded-lg"
-        >
-          {loading ? "Enviando..." : "Restablecer contraseña"}
-        </button>
-      </form>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <input
+              type="email"
+              placeholder="Correo electrónico"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="
+                w-full px-4 py-3 rounded-xl
+                border border-gray-200
+                focus:outline-none focus:ring-2 focus:ring-green-500
+                focus:border-green-500
+                transition
+              "
+            />
+          </div>
 
-      <p className="text-sm text-center">
-        <Link to="/signin" className="text-brand-500">
-          Volver a iniciar sesión
-        </Link>
-      </p>
+          <button
+            type="submit"
+            disabled={loading}
+            className="
+              w-full py-3 rounded-xl font-semibold text-white
+              bg-gradient-to-r from-green-600 via-green-500 to-blue-600
+              hover:from-green-700 hover:to-blue-700
+              transition-all duration-300
+              disabled:opacity-60
+              shadow-lg
+            "
+          >
+            {loading ? "Enviando..." : "Restablecer contraseña"}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div className="text-center">
+          <Link
+            to="/signin"
+            className="
+              text-sm font-semibold text-green-600
+              hover:text-blue-600 transition
+            "
+          >
+            Volver a iniciar sesión
+          </Link>
+        </div>
+      </div>
     </div>
   );
 };

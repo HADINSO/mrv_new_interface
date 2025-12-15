@@ -12,6 +12,7 @@ import {
   Ban,
 } from "lucide-react";
 import ApiHelsy from "../../service/ApiHelsy";
+import Helper from "../../service/Helper";
 
 /* -------------------------
    Tipos
@@ -185,16 +186,42 @@ const UserManager: React.FC = () => {
   // Handlers: block, toggle role, delete (open modal), confirm delete (call API)
   const handleBlock = async (id: number) => {
     setProcessingId(id);
+
     try {
-      // call the API to toggle block (if exists). We use a PUT/POST depending on your backend.
-      // Example: await ApiHelsy.put(`user/${id}/block`);
-      const user = users.find((u) => u.id === id);
-      const newEstado = user?.estado === 2 ? 1 : 2;
-      // If API present, uncomment:
-      // await ApiHelsy.put(`user/${id}/block`, { estado: newEstado });
-      // For safety, apply optimistic update:
-      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, estado: newEstado as User["estado"] } : u)));
-      addNotification(`Usuario ${newEstado === 1 ? "desbloqueado" : "bloqueado"} correctamente`, "info");
+      const user = users.find(u => u.id === id);
+      if (!user) return;
+
+      const newEstado: User["estado"] = user.estado === 2 ? 1 : 2;
+
+      const response = await fetch(
+        `${Helper.url}users/block/${id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            estado: newEstado.toString(),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error en la respuesta del servidor");
+      }
+
+      // Actualiza el estado solo si el backend respondió correctamente
+      setUsers(prev =>
+        prev.map(u =>
+          u.id === id ? { ...u, estado: newEstado } : u
+        )
+      );
+
+      addNotification(
+        `Usuario ${newEstado === 1 ? "desbloqueado" : "bloqueado"} correctamente`,
+        "info"
+      );
+
     } catch (err) {
       console.error("Error blocking user:", err);
       addNotification("Error al actualizar estado del usuario", "error");
@@ -213,9 +240,34 @@ const UserManager: React.FC = () => {
       else if (user.rol === 2) newRol = 3;
       else newRol = 1;
 
-      // call API if available: await ApiHelsy.put(`user/${id}/role`, { rol: newRol });
-      setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, rol: newRol } : u)));
-      addNotification(`Rol actualizado a ${getRolName(newRol)}`, "success");
+      const response = await fetch(
+        `${Helper.url}users/rol/${id}/${newRol}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            rol: newRol.toString(),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, rol: newRol } : u)));
+        addNotification(`Rol actualizado a ${getRolName(newRol)}`, "success");
+      }
+
+      setUsers(prev =>
+        prev.map(u =>
+          u.id === id ? { ...u, rol: newRol } : u
+        )
+      );
+
+      addNotification(
+        `Rol actualizado a ${getRolName(newRol)}`,
+        "success"
+      );
     } catch (err) {
       console.error("Error changing role:", err);
       addNotification("Error al cambiar rol", "error");
@@ -233,15 +285,23 @@ const UserManager: React.FC = () => {
     if (userToDelete === null) return;
     setProcessingId(userToDelete);
     try {
-      // call API to delete
-      // await ApiHelsy.delete(`user/${userToDelete}`);
-      // Simulate deletion success by updating state:
-      setUsers((prev) => prev.filter((u) => u.id !== userToDelete));
-      addNotification("Usuario eliminado correctamente", "success");
-      // adjust pagination if needed
-      const remaining = filteredUsers.filter(u => u.id !== userToDelete).length;
-      const newTotalPages = Math.max(1, Math.ceil(remaining / ITEMS_PER_PAGE));
-      if (currentPage > newTotalPages) setCurrentPage(newTotalPages);
+
+      const response = await fetch(
+        `${Helper.url}users/delete/${userToDelete}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
+      if (response.ok) {
+        setUsers((prev) => prev.filter((u) => u.id !== userToDelete));
+        addNotification("Usuario eliminado correctamente", "success");
+        const remaining = filteredUsers.filter(u => u.id !== userToDelete).length;
+        const newTotalPages = Math.max(1, Math.ceil(remaining / ITEMS_PER_PAGE));
+        if (currentPage > newTotalPages) setCurrentPage(newTotalPages);
+      }
     } catch (err) {
       console.error("Error deleting user:", err);
       addNotification("Error al eliminar usuario", "error");
