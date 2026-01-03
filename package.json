@@ -30,7 +30,7 @@
     "chartjs-chart-matrix": "^3.0.0",
     "clsx": "^2.1.1",
     "flatpickr": "^4.6.13",
-    "framer-motion": "^12.23.24",
+    "framer-motion": "^12.23.26",
     "highcharts": "^12.2.0",
     "highcharts-react-official": "^3.2.2",
     "lexical": "^0.38.2",

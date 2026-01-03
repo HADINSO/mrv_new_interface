@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Modal } from "../components/ui/modal";
+import { Modal } from "../components/ui/modal"; 
 import { useModal } from "../hooks/useModal";
 import PageMeta from "../components/common/PageMeta";
 import { EstacionManager } from "./Estacion/EstacionManager";

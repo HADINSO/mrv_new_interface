@@ -17,28 +17,15 @@ interface Lectura {
     fecha: string;
     codigo?: string;
 }
-
-const VARIABLES_MAP: Record<string, string> = {
-    V1: "Flujo",
-    V2: "Dirección del Viento °",
-    V3: "Velocidad del viento en 1 minuto km/h",
-    V4: "Velocidad del viento en 5 minutos km/h",
-    V5: "Temperatura",
-    V6: "Lluvia en 1 hora (mm)",
-    V7: "Lluvia en las últimas 24 horas (mm)",
-    V8: "Humedad Relativa % RH",
-    V9: "Presión Barométrica (1 atmósfera = 1.01325 bar.)",
-    V10: "Nivel",
-    V12: "Monóxido de carbono μg/m³",
-    V13: "Amoníaco NH3 μg/m³",
-    V15: "Dióxido de nitrógeno μg/m³",
-    V16: "Óxidos de Nitrógeno (NOx) μg/m³",
-};
+interface DatosPorFecha {
+    fecha: string;
+    valores: number[];
+}
 
 const Detalles: React.FC = () => {
     const { codigo, id } = useParams<{ codigo: string; id: string }>();
     const [datos, setDatos] = useState<Lectura[]>([]);
-    const [prompt, setPrompt] = useState("");
+    const [datosTabla, setDatosTabla] = useState<DatosPorFecha[]>([]);
 
     const [showModal, setShowModal] = useState(false);
     const [fechaInicio, setFechaInicio] = useState("");
@@ -74,7 +61,7 @@ const Detalles: React.FC = () => {
                         codigo,
                     }));
                     setDatos(datosConCodigo);
-                    generarPrompt(datosConCodigo);
+                    datosParaInforme(datosConCodigo);
                 } else {
                     setDatos([]);
                 }
@@ -89,40 +76,44 @@ const Detalles: React.FC = () => {
         return () => clearInterval(interval);
     }, [codigo, id]);
 
-    const generarPrompt = (datos: Lectura[]) => {
-        const valoresPorFecha: Record<string, string[]> = {};
+
+    const datosParaInforme = (datos: Lectura[]) => {
+        const valoresPorFecha: Record<string, number[]> = {};
 
         datos.forEach((lectura) => {
-            const fecha = lectura.fecha;
-            const variableNombre =
-                VARIABLES_MAP[lectura.codigo || ""] ||
-                lectura.codigo ||
-                "Desconocida";
+            if (!lectura.fecha || !lectura.lectura) return;
 
-            const valorLimpio = lectura.lectura
-                .replace(/V\d*$/i, "")
-                .trim();
+            // 1. Separar fecha y hora real desde el timestamp
+            const [fechaLimpia] = lectura.fecha.split(" "); // YYYY-MM-DD
 
-            const texto = `${variableNombre}: ${valorLimpio}-`;
+            // 2. Extraer solo el número (robusto ante V5, saltos de línea, ruido)
+            const valorNumerico = parseFloat(
+                lectura.lectura.replace(/[^\d.-]/g, "")
+            );
 
-            if (!valoresPorFecha[fecha]) {
-                valoresPorFecha[fecha] = [];
+            if (Number.isNaN(valorNumerico)) return;
+
+            // 3. Agrupar por fecha limpia
+            if (!valoresPorFecha[fechaLimpia]) {
+                valoresPorFecha[fechaLimpia] = [];
             }
-            valoresPorFecha[fecha].push(texto);
+
+            valoresPorFecha[fechaLimpia].push(valorNumerico);
         });
 
-        let textoFinal = `
-            Realiza un análisis estadístico completo del dataset.
-            La respuesta debe ser exclusivamente en HTML.
+        // 4. Orden cronológico real
+        const resultadoOrdenado: DatosPorFecha[] = Object.entries(valoresPorFecha)
+            .sort(
+                ([a], [b]) =>
+                    new Date(`${a}T00:00:00`).getTime() -
+                    new Date(`${b}T00:00:00`).getTime()
+            )
+            .map(([fecha, valores]) => ({
+                fecha,
+                valores,
+            }));
 
-            Datos procesados:
-        `;
-
-        Object.entries(valoresPorFecha).forEach(([fecha, valores]) => {
-            textoFinal += `\nFecha: ${fecha}\n${valores.join("\n")}\n`;
-        });
-
-        setPrompt(textoFinal.trim());
+        setDatosTabla(resultadoOrdenado);
     };
 
     const handleDownloadCSV = async () => {
@@ -213,7 +204,7 @@ const Detalles: React.FC = () => {
                         />
                     </div>
                     <div className="col-span-12">
-                        <InformeLecturas prompt={prompt} />
+                        <InformeLecturas datosTabla={datosTabla} />
                     </div>
                 </div>
             </div>
@@ -270,7 +261,7 @@ const Detalles: React.FC = () => {
 
                                 <DatePicker
                                     selected={fechaInicio ? new Date(fechaInicio) : null}
-                                      //@ts-ignore
+                                    //@ts-ignore
                                     onChange={(date: Date) =>
                                         setFechaInicio(date.toISOString().split("T")[0])
                                     }
