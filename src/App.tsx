@@ -41,9 +41,50 @@ import { useAuth } from "./context/AuthContext";
 import Comunas from "./pages/Comunas/Comunas";
 import Precios from "./pages/Precios/Precios";
 import ChangePassword from "./components/auth/ChangePassword";
+import { useEffect } from "react";
+import axios, { AxiosError } from "axios";
+import Helper from "./service/Helper";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
+
+  const registrarVisita = async (): Promise<void> => {
+    const dispositivo: string = navigator.userAgent ?? "Unknown Device";
+
+    try {
+      await axios.post(
+        `${Helper.url}visitas/register`,
+        { dispositivo },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 5000,
+        }
+      );
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          console.error(
+            "Error del servidor:",
+            error.response.status,
+            error.response.data
+          );
+        } else if (error.request) {
+          console.error("No se recibió respuesta del servidor:", error.request);
+        } else {
+          console.error("Error al configurar la solicitud:", error.message);
+        }
+      } else {
+        console.error("Error inesperado:", error);
+      }
+    }
+  };
+
+  useEffect((): void => {
+    registrarVisita();
+  }, []);
+
 
   return (
     <Router>
@@ -57,8 +98,8 @@ export default function App() {
           <Route path="/inform/:estacion" element={<Home />} />
           <Route path="/monitoring/:id" element={<Monitoreo />} />
           <Route path="/monitoring/variables/:id" element={<Variables />} />
-          <Route path="/monitoring/variables/detalles/:codigo/:id" element={<Detalles />}/>
-          <Route path="/forgot-password" element={<ChangePassword />}/>
+          <Route path="/monitoring/variables/detalles/:codigo/:id" element={<Detalles />} />
+          <Route path="/forgot-password" element={<ChangePassword />} />
           {/* Privadas (solo si está autenticado) */}
           {isAuthenticated && (
             <>
