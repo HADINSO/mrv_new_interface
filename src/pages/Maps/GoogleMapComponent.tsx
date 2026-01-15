@@ -51,7 +51,6 @@ const GoogleMapComponent: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await ApiRest.get("estaciones");
-      console.log("Datos de estaciones recibidos:", response.data);
       setLocations(response.data.data || []);
     } catch (err: any) {
       setError(err.message);

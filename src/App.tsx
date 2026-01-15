@@ -42,7 +42,7 @@ import Comunas from "./pages/Comunas/Comunas";
 import Precios from "./pages/Precios/Precios";
 import ChangePassword from "./components/auth/ChangePassword";
 import { useEffect } from "react";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import Helper from "./service/Helper";
 
 export default function App() {

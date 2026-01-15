@@ -179,7 +179,7 @@ export const Monitoreo = () => {
                   ID:
                 </span>
                 <span className="text-gray-600 dark:text-gray-400">
-                  {estacion.id}
+                  {estacion.estacion_mrv}
                 </span>
               </div>
             </div>

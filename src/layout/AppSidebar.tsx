@@ -72,7 +72,7 @@ const AppSidebar: React.FC = () => {
           name: "Gestión & usuarios",
           subItems: [
             { name: "Usuarios", path: "/users", icon: <MdPeople /> },
-            { name: "Clientes", path: "/customers", icon: <MdPeople /> },
+            //{ name: "Clientes", path: "/customers", icon: <MdPeople /> },
             {
               name: "Registro Visitas",
               path: "/visits",
@@ -86,7 +86,7 @@ const AppSidebar: React.FC = () => {
           subItems: [
             { name: "Comunas", path: "/comunas", icon: <MdLocationOn /> },
             { name: "Precios", path: "/precios", icon: <MdAttachMoney /> },
-            { name: "Documentación", path: "/docs", icon: <MdDescription /> },
+           // { name: "Documentación", path: "/docs", icon: <MdDescription /> },
           ],
         }
       );

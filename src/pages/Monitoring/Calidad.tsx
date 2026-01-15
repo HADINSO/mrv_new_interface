@@ -116,7 +116,7 @@ const Calidad = ({ estacion }: Props) => {
           fecha: i.fecha || i.created_at || "",
           valor: m ? parseFloat(m[0]) : 0
         };
-      }).reverse();
+      });
 
       setHistory(formatted);
 

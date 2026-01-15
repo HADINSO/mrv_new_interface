@@ -43,12 +43,12 @@ interface Sensor {
 const tipoEstacion: Record<number, { nombre: string; icono: React.ReactNode }> =
   {
     1: {
-      nombre: "Hidrológico",
-      icono: <FaWater className="text-blue-500 text-2xl" />,
-    },
-    2: {
       nombre: "Meteorológico",
       icono: <FaCloudSunRain className="text-cyan-500 text-2xl" />,
+    },
+    2: {
+      nombre: "Hidrológico",
+      icono: <FaWater className="text-blue-500 text-2xl" />,
     },
     3: {
       nombre: "Calidad del Aire",
